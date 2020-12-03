@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "947286744246",
+    "firebase_url": "https://faena-543fd.firebaseio.com",
+    "project_id": "faena-543fd",
+    "storage_bucket": "faena-543fd.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:947286744246:android:4db6fcf45ba932a6669a17",
+        "android_client_info": {
+          "package_name": "com.example.faena"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "947286744246-bb8omo4ubd42v62265hk29oaapfukl69.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4UES9BiOwJ1kDkuJ-nButR6nx30UEPbg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "947286744246-bb8omo4ubd42v62265hk29oaapfukl69.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
