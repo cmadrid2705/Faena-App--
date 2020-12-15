@@ -99,6 +99,17 @@ class FirebaseService {
     return allBarbers;
   }
 
+  Future<List<User>> getBarbersByEmail(List<String> emails) async {
+    QuerySnapshot snapshot = await _firestore
+        .collection(USERS)
+        .where(USER_ROLE, isEqualTo: Constants.ROLE_BARBER)
+        .getDocuments();
+    var allBarbers =
+    snapshot.documents.map((d) => User.fromJson(d.data)).toList();
+    allBarbers.removeWhere((d) => d.uid == stateInstance.signUser.uid);
+    return allBarbers.where((element) => emails.contains(element.email)).toList();
+  }
+
   Future<List<User>> getStylists() async {
     QuerySnapshot snapshot = await _firestore
         .collection(USERS)
@@ -108,6 +119,18 @@ class FirebaseService {
         snapshot.documents.map((d) => User.fromJson(d.data)).toList();
     allStylists.removeWhere((d) => d.uid == stateInstance.signUser.uid);
     return allStylists;
+  }
+
+Future<List<User>> getStylistsByEmail(List<String> emails) async {
+    QuerySnapshot snapshot = await _firestore
+        .collection(USERS)
+        .where(USER_ROLE, isEqualTo: Constants.ROLE_STYLIST)
+        .getDocuments();
+    var allStylists =
+        snapshot.documents.map((d) => User.fromJson(d.data)).toList();
+    allStylists.removeWhere((d) => d.uid == stateInstance.signUser.uid);
+
+    return allStylists.where((element) => emails.contains(element.email)).toList();
   }
 
   Future removeCollaborator(

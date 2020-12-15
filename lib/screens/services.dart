@@ -110,8 +110,7 @@ class Services extends StatelessWidget {
             Container(
                 margin: EdgeInsets.only(top: 5),
                 child: Text(
-                  //FIX THIS FIELD///////////////////////////////////////////////////////////////////////////////
-                  'Horario: ' + service.rating.toString(),
+                  'Horario: ' + service.schedule,
                   style: TextStyle(color: Colors.blue, fontSize: 12),
                 ))
           ])),

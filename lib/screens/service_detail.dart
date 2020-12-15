@@ -5,6 +5,7 @@ import 'package:faena/models/user.dart';
 import 'package:faena/services/firebase_service.dart';
 import 'package:faena/services/geolocator_service.dart';
 import 'package:faena/services/state_management_service.dart';
+import 'package:faena/utils/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -195,7 +196,7 @@ class _ServiceDetailState extends State<ServiceDetail> {
     return markers;
   }
 
-  Future<DateTime> showDateTimePicker() {
+  Future<DateTime> _showDatePicker() {
     return showDatePicker(
       context: context,
       initialDate: DateTime.now().add(Duration(days: 1)),
@@ -204,65 +205,179 @@ class _ServiceDetailState extends State<ServiceDetail> {
     );
   }
 
-  void _showBottomSheet() {
+  Future<TimeOfDay> _showTimePicker() {
+    return showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (BuildContext context, Widget child) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: child,
+        );
+      },
+    );
+  }
+
+  void _showBottomSheet() async {
     var controller =
-        new TextEditingController(text: 'escribe tu detalle de lo que deseas');
+        TextEditingController(text: 'escribe tu detalle de lo que deseas');
+    var locationController =
+        TextEditingController(text: 'escribe tu direccion');
     var cita = Appointment(
         requesterId: stateInstance.signUser.uid,
         businessId: widget.service.uid);
     var displayDate = cita.date.obs;
-    Get.bottomSheet(Container(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Obx(
-            () => Text(
-                'Solicitar cita: ${displayDate.value.day}/${displayDate.value.month}/${displayDate.value.year}',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18.0,
-                    color: Theme.of(context).primaryColorDark),
-              ),
-            ),
-            TextField(
-              controller: controller,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text('Tocar para seleccionar fecha'),
-                IconButton(
-                  onPressed: (){
-                    showDateTimePicker().then((value) {
-                      if(value != null){
-                        displayDate.value = cita.date = value;
-                      }
-                    });
-                  },
-                  icon: Icon(Icons.date_range),
+
+    var choices = Constants.getChoices(widget.service.role);
+    var selectedChoice = choices.first.obs;
+
+    var specs = (widget.service.role == Constants.ROLE_BARBERSHOP
+        ? await firebaseInstance
+            .getBarbersByEmail(widget.service.collaborators.split('_^_'))
+        : await firebaseInstance
+            .getStylistsByEmail(widget.service.collaborators.split('_^_')));
+
+    specs = specs.isEmpty
+        ? [User(displayName: 'No hay especialistas aqui')]
+        : [...specs];
+    var selectedSpec = specs.first.displayName.obs;
+
+    var locationOptions = ['En establecimiento', 'A domicilio'];
+    var selectedOption = locationOptions.first.obs;
+    var showAddressInput = (selectedOption.value == locationOptions.reversed.first).obs;
+
+    Get.bottomSheet(
+      Container(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Obx(
+                () => Text(
+                  'Solicitar cita: ${displayDate.value.day}/${displayDate.value.month}/${displayDate.value.year} alas ${displayDate.value.hour}:${displayDate.value.minute}',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18.0,
+                      color: Theme.of(context).primaryColorDark),
                 ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                FlatButton(
+              ),
+              TextField(
+                controller: controller,
+              ),
+              DropdownButtonHideUnderline(
+                  child: Obx(
+                () => DropdownButton(
+                    value: selectedChoice.value,
+                    items: [
+                      ...choices.map(
+                          (e) => DropdownMenuItem(child: Text(e), value: e))
+                    ],
+                    onChanged: (value) {
+                      selectedChoice.value = value;
+                      cita.service = value;
+                    }),
+              )),
+              DropdownButtonHideUnderline(
+                  child: Obx(
+                () => DropdownButton(
+                    value: selectedSpec.value,
+                    items: [
+                      ...specs.map((s) => s.displayName).map(
+                          (e) => DropdownMenuItem(child: Text(e), value: e))
+                    ],
+                    onChanged: (value) {
+                      selectedSpec.value = value;
+                      cita.specialist = value;
+                    }),
+              )),
+              DropdownButtonHideUnderline(
+                  child: Obx(
+                () => DropdownButton(
+                    value: selectedOption.value,
+                    items: [
+                      ...locationOptions.map(
+                          (e) => DropdownMenuItem(child: Text(e), value: e))
+                    ],
+                    onChanged: (value) {
+                      selectedOption.value = value;
+                      showAddressInput.value = value == locationOptions.reversed.first;
+                      cita.locationType = value;
+                    }),
+              )),
+              Obx(
+                () => Visibility(
+                  visible: showAddressInput.value,
+                  child: TextField(
+                    controller: locationController,
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text('Tocar para seleccionar fecha'),
+                  IconButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      _showDatePicker().then((value) {
+                        if (value != null) {
+                          displayDate.value = cita.date = value;
+                        }
+                      });
                     },
-                    child: Text('Cancelar')),
-                FlatButton(
-                    onPressed: () async {
-                      cita.details = controller.text;
-                      await firebaseInstance.createAppointment(cita);
-                      Navigator.of(context).pop();
+                    icon: Icon(Icons.date_range),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text('Tocar para seleccionar hora'),
+                  IconButton(
+                    onPressed: () {
+                      _showTimePicker().then((value) {
+                        if (value != null) {
+                          displayDate.value = cita.date = DateTime(
+                              cita.date.year,
+                              cita.date.month,
+                              cita.date.day,
+                              value.hour,
+                              value.minute);
+                        }
+                      });
                     },
-                    child: Text('Guardar'))
-              ],
-            )
-          ],
-        )));
+                    icon: Icon(Icons.watch_later_outlined),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  FlatButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(
+                        'Cancelar',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      )),
+                  FlatButton(
+                      onPressed: () async {
+                        cita.details = controller.text;
+                        cita.location = locationController.text;
+                        await firebaseInstance.createAppointment(cita);
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(
+                        'Guardar',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ))
+                ],
+              )
+            ],
+          )),
+      backgroundColor: Colors.white,
+      isScrollControlled: true
+    );
   }
 }
