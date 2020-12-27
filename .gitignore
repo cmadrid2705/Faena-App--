@@ -43,3 +43,12 @@ app.*.map.json
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 /ios/Flutter/flutter_export_environment 2.sh
 /ios/Podfile
+/.gradle/buildOutputCleanup/buildOutputCleanup.lock
+/.gradle/buildOutputCleanup/cache.properties
+/.gradle/checksums/checksums.lock
+/.gradle/6.7/fileHashes/fileHashes.lock
+/.gradle/6.7/gc.properties
+/.gradle/configuration-cache/gc.properties
+/.gradle/vcs-1/gc.properties
+/.gradle/6.7/fileChanges/last-build.bin
+/local.properties
