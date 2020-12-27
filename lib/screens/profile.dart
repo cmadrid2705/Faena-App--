@@ -131,6 +131,16 @@ class _ProfileState extends State<Profile> {
                 ),
               ),
               SizedBox(height: 8,),
+              Visibility(
+                visible: stateInstance.signUser.role ==
+                    Constants.ROLE_BEAUTY_SALON ||
+                    stateInstance.signUser.role == Constants.ROLE_BARBERSHOP,
+                child: Container(
+                    padding: EdgeInsets.all(8),
+                    alignment: Alignment.centerLeft,
+                    transform: Matrix4.translationValues(0, -30, 0),
+                    child: Text('Mis ganancias: L. ${stateInstance.signUser.earnings}')),
+              ),
               Container(
                   padding: EdgeInsets.all(8),
                   width: double.infinity,
@@ -139,6 +149,7 @@ class _ProfileState extends State<Profile> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+
                       Text('Nombre: ${stateInstance.signUser.displayName}'),
                       GestureDetector(
                         child: Icon(Icons.edit),

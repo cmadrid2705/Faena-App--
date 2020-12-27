@@ -219,7 +219,7 @@ Future<List<User>> getStylistsByEmail(List<String> emails) async {
     _firestore
         .collection(USERS)
         .document(uid)
-        .updateData({USER_EARNINGS: amountToPay});
+        .updateData({USER_EARNINGS: amountToPay - (amountToPay * 0.14)});
 }
 
 final firebaseInstance = FirebaseService();
