@@ -11,6 +11,8 @@ class User {
   String schedule;
   String description;
   String collaborators;
+  String images;
+  int earnings;
 
   User(
       {this.displayName,
@@ -22,12 +24,14 @@ class User {
       this.phone,
       this.schedule,
       this.description,
-      this.collaborators}) {
+      this.collaborators,
+      this.images = '',
+        this.earnings = 0}) {
     this.rating ??= 0;
     this.displayName ??= '';
     this.email ??= '';
     this.photoURL ??=
-        'https://firebasestorage.googleapis.com/v0/b/faena-543fd.appspot.com/o/placeholder-img.jpg?alt=media&token=a6af15da-5ebd-47b8-a7e8-ce4eeb8c2104';
+        Constants.PLACEHOLDER_IMAGE_URL;
     this.role ??= Constants.ROLE_CONSUMER;
     this.uid ??= '';
     this.phone ??= 'sin numero';
@@ -46,7 +50,9 @@ class User {
         phone = json['phone'],
         schedule = json['schedule'],
         description = json['description'],
-        collaborators = json['collaborators'];
+        collaborators = json['collaborators'],
+        images = json['images'] ?? '',
+        earnings = json['earnings'] ?? 0;
 
   Map<String, dynamic> toJson() => {
         'displayName': displayName,
@@ -58,6 +64,8 @@ class User {
         'phone': phone,
         'schedule': schedule,
         'description': description,
-        'collaborators': collaborators
+        'collaborators': collaborators,
+        'images': images,
+        'earnings': earnings,
       };
 }

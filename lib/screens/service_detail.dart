@@ -1,17 +1,20 @@
 import 'dart:async';
 
 import 'package:faena/models/appointment.dart';
+import 'package:faena/models/category.dart' as models;
 import 'package:faena/models/user.dart';
 import 'package:faena/services/firebase_service.dart';
 import 'package:faena/services/geolocator_service.dart';
 import 'package:faena/services/state_management_service.dart';
 import 'package:faena/utils/constants.dart';
+import 'package:faena/widgets/carrousel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:getwidget/getwidget.dart';
 
 class ServiceDetail extends StatefulWidget {
   final User service;
@@ -72,6 +75,20 @@ class _ServiceDetailState extends State<ServiceDetail> {
                     image: DecorationImage(
                         image: NetworkImage(service.photoURL),
                         fit: BoxFit.fill)),
+              ),
+              Carrousel(
+                isForImagesOnly: true,
+                categoryList: [
+                  if (service.images.isNotEmpty)
+                    ...service.images
+                        .split(Constants.SEPARATOR)
+                        .map((e) => models.Category(photoURL: e)),
+                  if (service.images.isEmpty)
+                    models.Category(photoURL: Constants.PLACEHOLDER_IMAGE_URL)
+                ],
+              ),
+              SizedBox(
+                height: 18,
               ),
               Container(
                   alignment: Alignment.centerLeft,
@@ -219,16 +236,33 @@ class _ServiceDetailState extends State<ServiceDetail> {
   }
 
   void _showBottomSheet() async {
-    var controller =
-        TextEditingController(text: 'escribe tu detalle de lo que deseas');
-    var locationController =
-        TextEditingController(text: 'escribe tu direccion');
+    var detailsCtl = TextEditingController(text: '');
+    var addressCtl = TextEditingController(text: '');
+    var neighborhoodCtl = TextEditingController(text: '');
+    var cityCtl = TextEditingController(text: '');
+    var departmentCtl = TextEditingController(text: '');
+
+    var cardNumCtl = TextEditingController(text: '');
+    var cardExpCtl = TextEditingController(text: '');
+    var cardCvvCtl = TextEditingController(text: '');
+
     var cita = Appointment(
         requesterId: stateInstance.signUser.uid,
         businessId: widget.service.uid);
     var displayDate = cita.date.obs;
 
-    var choices = Constants.getChoices(widget.service.role);
+    var services =
+        await firebaseInstance.getServicesByBusiness(widget.service.uid);
+    var choices =
+        services.map((e) => '${e.description} (L. ${e.price})').toList();
+    var amountToPay = 0.obs;
+
+    if (choices.isEmpty) {
+      choices.add('No hay servicios aun...');
+    } else {
+      amountToPay.value = services.first.price;
+    }
+
     var selectedChoice = choices.first.obs;
 
     var specs = (widget.service.role == Constants.ROLE_BARBERSHOP
@@ -244,140 +278,262 @@ class _ServiceDetailState extends State<ServiceDetail> {
 
     var locationOptions = ['En establecimiento', 'A domicilio'];
     var selectedOption = locationOptions.first.obs;
-    var showAddressInput = (selectedOption.value == locationOptions.reversed.first).obs;
+    var showAddressInput =
+        (selectedOption.value == locationOptions.reversed.first).obs;
 
     Get.bottomSheet(
-      Container(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Obx(
-                () => Text(
-                  'Solicitar cita: ${displayDate.value.day}/${displayDate.value.month}/${displayDate.value.year} alas ${displayDate.value.hour}:${displayDate.value.minute}',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18.0,
-                      color: Theme.of(context).primaryColorDark),
-                ),
-              ),
-              TextField(
-                controller: controller,
-              ),
-              DropdownButtonHideUnderline(
-                  child: Obx(
-                () => DropdownButton(
-                    value: selectedChoice.value,
-                    items: [
-                      ...choices.map(
-                          (e) => DropdownMenuItem(child: Text(e), value: e))
-                    ],
-                    onChanged: (value) {
-                      selectedChoice.value = value;
-                      cita.service = value;
-                    }),
-              )),
-              DropdownButtonHideUnderline(
-                  child: Obx(
-                () => DropdownButton(
-                    value: selectedSpec.value,
-                    items: [
-                      ...specs.map((s) => s.displayName).map(
-                          (e) => DropdownMenuItem(child: Text(e), value: e))
-                    ],
-                    onChanged: (value) {
-                      selectedSpec.value = value;
-                      cita.specialist = value;
-                    }),
-              )),
-              DropdownButtonHideUnderline(
-                  child: Obx(
-                () => DropdownButton(
-                    value: selectedOption.value,
-                    items: [
-                      ...locationOptions.map(
-                          (e) => DropdownMenuItem(child: Text(e), value: e))
-                    ],
-                    onChanged: (value) {
-                      selectedOption.value = value;
-                      showAddressInput.value = value == locationOptions.reversed.first;
-                      cita.locationType = value;
-                    }),
-              )),
-              Obx(
-                () => Visibility(
-                  visible: showAddressInput.value,
-                  child: TextField(
-                    controller: locationController,
-                  ),
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text('Tocar para seleccionar fecha'),
-                  IconButton(
-                    onPressed: () {
-                      _showDatePicker().then((value) {
-                        if (value != null) {
-                          displayDate.value = cita.date = value;
-                        }
-                      });
-                    },
-                    icon: Icon(Icons.date_range),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text('Tocar para seleccionar hora'),
-                  IconButton(
-                    onPressed: () {
-                      _showTimePicker().then((value) {
-                        if (value != null) {
-                          displayDate.value = cita.date = DateTime(
-                              cita.date.year,
-                              cita.date.month,
-                              cita.date.day,
-                              value.hour,
-                              value.minute);
-                        }
-                      });
-                    },
-                    icon: Icon(Icons.watch_later_outlined),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+        SingleChildScrollView(
+          child: Container(
+              padding: EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  FlatButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(
-                        'Cancelar',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      )),
-                  FlatButton(
-                      onPressed: () async {
-                        cita.details = controller.text;
-                        cita.location = locationController.text;
-                        await firebaseInstance.createAppointment(cita);
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(
-                        'Guardar',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ))
+                  Obx(
+                    () => Text(
+                      'Solicitar cita: ${displayDate.value.day}/${displayDate.value.month}/${displayDate.value.year} alas ${displayDate.value.hour}:${displayDate.value.minute}',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18.0,
+                          color: Theme.of(context).primaryColorDark),
+                    ),
+                  ),
+                  TextField(
+                    decoration: InputDecoration(
+                        hintText: 'Escribe el detalle de lo que deseas'),
+                    controller: detailsCtl,
+                  ),
+                  DropdownButtonHideUnderline(
+                      child: Obx(
+                    () => DropdownButton(
+                        value: selectedChoice.value,
+                        items: [
+                          ...choices.map(
+                              (e) => DropdownMenuItem(child: Text(e), value: e))
+                        ],
+                        onChanged: (String value) {
+                          selectedChoice.value = value;
+                          cita.service = value;
+                          amountToPay.value = services
+                              .firstWhere((e) => e.description.contains(value))
+                              .price;
+                        }),
+                  )),
+                  DropdownButtonHideUnderline(
+                      child: Obx(
+                    () => DropdownButton(
+                        value: selectedSpec.value,
+                        items: [
+                          ...specs.map((s) => s.displayName).map(
+                              (e) => DropdownMenuItem(child: Text(e), value: e))
+                        ],
+                        onChanged: (value) {
+                          selectedSpec.value = value;
+                          cita.specialist = value;
+                        }),
+                  )),
+                  DropdownButtonHideUnderline(
+                      child: Obx(
+                    () => DropdownButton(
+                        value: selectedOption.value,
+                        items: [
+                          ...locationOptions.map(
+                              (e) => DropdownMenuItem(child: Text(e), value: e))
+                        ],
+                        onChanged: (value) {
+                          selectedOption.value = value;
+                          showAddressInput.value =
+                              value == locationOptions.reversed.first;
+                          cita.locationType = value;
+                        }),
+                  )),
+                  Obx(
+                    () => Visibility(
+                      visible: showAddressInput.value,
+                      child: Column(
+                        children: [
+                          TextField(
+                            decoration: InputDecoration(
+                                hintText: 'Direccion y numero de casa'),
+                            controller: addressCtl,
+                          ),
+                          TextField(
+                            decoration:
+                                InputDecoration(hintText: 'Barrio o Colonia'),
+                            controller: neighborhoodCtl,
+                          ),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: TextField(
+                                  decoration:
+                                      InputDecoration(hintText: 'Cuidad'),
+                                  controller: cityCtl,
+                                ),
+                              ),
+                              SizedBox(
+                                width: 4,
+                              ),
+                              Flexible(
+                                child: TextField(
+                                  decoration:
+                                      InputDecoration(hintText: 'Departamento'),
+                                  controller: departmentCtl,
+                                ),
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text('Tocar para seleccionar fecha'),
+                      IconButton(
+                        onPressed: () {
+                          _showDatePicker().then((value) {
+                            if (value != null) {
+                              displayDate.value = cita.date = value;
+                            }
+                          });
+                        },
+                        icon: Icon(Icons.date_range),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text('Tocar para seleccionar hora'),
+                      IconButton(
+                        onPressed: () {
+                          _showTimePicker().then((value) {
+                            if (value != null) {
+                              displayDate.value = cita.date = DateTime(
+                                  cita.date.year,
+                                  cita.date.month,
+                                  cita.date.day,
+                                  value.hour,
+                                  value.minute);
+                            }
+                          });
+                        },
+                        icon: Icon(Icons.watch_later_outlined),
+                      ),
+                    ],
+                  ),
+                  GFAccordion(
+                    title: 'Pago con tarjeta',
+                    contentChild: Column(
+                      children: [
+                        Obx(() =>
+                            Text('Total a pagar L. ${amountToPay.value}')),
+                        TextField(
+                          decoration:
+                              InputDecoration(hintText: 'xxxx xxxx xxxx xxxx'),
+                          controller: cardNumCtl,
+                          keyboardType: TextInputType.number,
+                          maxLength: 16,
+                        ),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: TextField(
+                                decoration:
+                                    InputDecoration(hintText: 'xx / xx'),
+                                controller: cardExpCtl,
+                                onChanged: (String val) {
+                                  if (val.length == 2) {
+                                    cardExpCtl.text = val + '/';
+                                    cardExpCtl.selection =
+                                        TextSelection.fromPosition(TextPosition(
+                                            offset: cardExpCtl.text.length));
+                                  }
+                                },
+                                keyboardType: TextInputType.datetime,
+                                maxLength: 5,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 4,
+                            ),
+                            Flexible(
+                              child: TextField(
+                                decoration: InputDecoration(hintText: 'xxx'),
+                                controller: cardCvvCtl,
+                                keyboardType: TextInputType.number,
+                                maxLength: 3,
+                              ),
+                            )
+                          ],
+                        ),
+                        Obx(
+                          () => RaisedButton(
+                            onPressed: amountToPay.value == 0
+                                ? null
+                                : () async {
+                                    if (cardNumCtl.text.isNotEmpty &&
+                                        cardExpCtl.text.isNotEmpty &&
+                                        cardCvvCtl.text.isNotEmpty &&
+                                        amountToPay.value != 0) {
+                                      await firebaseInstance.payService(
+                                          widget.service.uid,
+                                          widget.service.earnings +
+                                              amountToPay.value);
+                                      setState(() {
+                                        amountToPay.value = 0;
+                                      });
+                                    }
+                                  },
+                            color: Colors.green,
+                            textColor: Colors.white,
+                            child: Text('Pagar'),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      FlatButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(
+                            'Cancelar',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          )),
+                      FlatButton(
+                          onPressed: () async {
+                            if (detailsCtl.text.isEmpty ||
+                                (showAddressInput.value &&
+                                    addressCtl.text.isEmpty &&
+                                    neighborhoodCtl.text.isEmpty &&
+                                    cityCtl.text.isEmpty &&
+                                    departmentCtl.text.isEmpty)) {
+                              Get.snackbar('Falta informacion',
+                                  'Porfavor llena todos los campos');
+                              return;
+                            }
+                            cita.details = detailsCtl.text;
+                            cita.location =
+                                '${addressCtl.text}, ${neighborhoodCtl.text}, ${cityCtl.text}, ${departmentCtl.text}';
+                            await firebaseInstance.createAppointment(cita);
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(
+                            'Guardar',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ))
+                    ],
+                  )
                 ],
-              )
-            ],
-          )),
-      backgroundColor: Colors.white,
-      isScrollControlled: true
-    );
+              )),
+        ),
+        backgroundColor: Colors.white,
+        isScrollControlled: true);
   }
 }

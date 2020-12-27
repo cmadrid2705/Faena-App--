@@ -4,8 +4,8 @@ class Category {
   String photoURL;
 
   Category({
-    this.name,
-    this.description,
-    this.photoURL,
+    this.name = '',
+    this.description = '',
+    this.photoURL = '',
   });
 }

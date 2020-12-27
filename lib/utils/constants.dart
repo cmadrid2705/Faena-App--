@@ -25,4 +25,15 @@ class Constants {
             'Depilacion de bigote (L. 80)',
           ];
   }
+
+  static const SEPARATOR = '_^_';
+  static const PLACEHOLDER_IMAGE_URL = 'https://firebasestorage.googleapis.com/v0/b/faena-543fd.appspot.com/o/placeholder-img.jpg?alt=media&token=a6af15da-5ebd-47b8-a7e8-ce4eeb8c2104';
+
+
+
+  static List<String> stringToArray(String str, String separator)=> str.split(separator);
+
+  static String arrayToString(List<String> arr, String separator)=> arr.join(separator);
 }
+
+

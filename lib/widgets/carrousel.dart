@@ -7,7 +7,8 @@ import 'package:get/route_manager.dart';
 
 class Carrousel extends StatefulWidget {
   final List<Category> categoryList;
-  const Carrousel({Key key, this.categoryList}) : super(key: key);
+  final bool isForImagesOnly;
+  const Carrousel({Key key, this.categoryList, this.isForImagesOnly = false}) : super(key: key);
 
   @override
   _CarrouselState createState() => _CarrouselState();
@@ -56,7 +57,8 @@ class _CarrouselState extends State<Carrousel> {
                               image: NetworkImage(i.photoURL),
                               fit: BoxFit.cover),
                           borderRadius: BorderRadius.circular(15)),
-                      child: Column(
+                      child: widget.isForImagesOnly ? Container()
+                      :Column(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: <Widget>[
                             Container(
@@ -78,7 +80,8 @@ class _CarrouselState extends State<Carrousel> {
                                       // Expanded(child: Text(i.description))
                                     ]))
                           ])),
-                  onTap: () {
+                  onTap: widget.isForImagesOnly ? null
+                    :() {
                     Get.to(Services(name: i.name));
                   });
             });
