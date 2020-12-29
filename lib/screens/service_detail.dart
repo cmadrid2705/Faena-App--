@@ -80,8 +80,7 @@ class _ServiceDetailState extends State<ServiceDetail> {
                 isForImagesOnly: true,
                 categoryList: [
                   if (service.images.isNotEmpty)
-                    ...service.images
-                        .split(Constants.SEPARATOR)
+                    ...Constants.stringToArray(service.images, Constants.SEPARATOR)
                         .map((e) => models.Category(photoURL: e)),
                   if (service.images.isEmpty)
                     models.Category(photoURL: Constants.PLACEHOLDER_IMAGE_URL)
@@ -267,9 +266,9 @@ class _ServiceDetailState extends State<ServiceDetail> {
 
     var specs = (widget.service.role == Constants.ROLE_BARBERSHOP
         ? await firebaseInstance
-            .getBarbersByEmail(widget.service.collaborators.split('_^_'))
+            .getBarbersByEmail(Constants.stringToArray(widget.service.collaborators, Constants.SEPARATOR))
         : await firebaseInstance
-            .getStylistsByEmail(widget.service.collaborators.split('_^_')));
+        .getStylistsByEmail(Constants.stringToArray(widget.service.collaborators, Constants.SEPARATOR)));
 
     specs = specs.isEmpty
         ? [User(displayName: 'No hay especialistas aqui')]

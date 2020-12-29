@@ -122,7 +122,7 @@ class _ProfileState extends State<Profile> {
                       isForImagesOnly: true,
                       categoryList: [
                         if(stateInstance.signUser.images.isNotEmpty)
-                        ...stateInstance.signUser.images.split(Constants.SEPARATOR)
+                          ...Constants.stringToArray(stateInstance.signUser.images, Constants.SEPARATOR)
                         .map((e) => Category(
                             photoURL: e)),
                         if(stateInstance.signUser.images.isEmpty)
@@ -263,7 +263,8 @@ class _ProfileState extends State<Profile> {
               ),
               if (stateInstance.signUser.role == Constants.ROLE_BEAUTY_SALON ||
                   stateInstance.signUser.role == Constants.ROLE_BARBERSHOP)
-                ...stateInstance.signUser.collaborators.split(Constants.SEPARATOR).map(
+                ...Constants.stringToArray(stateInstance.signUser.collaborators, Constants.SEPARATOR)
+                .map(
                       (e) => ListTile(
                         title: Text(e),
                         trailing: IconButton(
@@ -275,8 +276,7 @@ class _ProfileState extends State<Profile> {
                                   e);
                               setState(() {
                                 stateInstance.signUser.collaborators =
-                                    stateInstance.signUser.collaborators
-                                        .split(Constants.SEPARATOR)
+                                    Constants.stringToArray(stateInstance.signUser.collaborators, Constants.SEPARATOR)
                                         .where((r) => r != e)
                                         .join(Constants.SEPARATOR);
                               });
@@ -360,8 +360,7 @@ class _ProfileState extends State<Profile> {
                       onPressed: () async {
                         if (label == 'Agregar colaborador') {
                           var serializedValue = [
-                            ...stateInstance.signUser.collaborators
-                                .split(Constants.SEPARATOR),
+                            ...Constants.stringToArray(stateInstance.signUser.collaborators, Constants.SEPARATOR),
                             controller.text
                           ].join(Constants.SEPARATOR);
                           await firebaseInstance.updateField(

@@ -215,7 +215,7 @@ Future<List<User>> getStylistsByEmail(List<String> emails) async {
         .document(uid)
         .delete();
 
-  Future<void> payService(String uid, int amountToPay) =>
+  Future<void> payService(String uid, double amountToPay) =>
     _firestore
         .collection(USERS)
         .document(uid)

@@ -12,7 +12,7 @@ class User {
   String description;
   String collaborators;
   String images;
-  int earnings;
+  double earnings;
 
   User(
       {this.displayName,
@@ -26,7 +26,7 @@ class User {
       this.description,
       this.collaborators,
       this.images = '',
-        this.earnings = 0}) {
+        this.earnings = 0.0}) {
     this.rating ??= 0;
     this.displayName ??= '';
     this.email ??= '';
@@ -52,7 +52,7 @@ class User {
         description = json['description'],
         collaborators = json['collaborators'],
         images = json['images'] ?? '',
-        earnings = json['earnings'] ?? 0;
+        earnings = json['earnings'] == null ? 0.0 : json['earnings'] is int ? (json['earnings'] as int).toDouble() : json['earnings'];
 
   Map<String, dynamic> toJson() => {
         'displayName': displayName,

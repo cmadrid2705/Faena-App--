@@ -31,9 +31,9 @@ class Constants {
 
 
 
-  static List<String> stringToArray(String str, String separator)=> str.split(separator);
+  static List<String> stringToArray(String str, String separator) => str.split(separator).where((e) => e.isNotEmpty).toList();
 
-  static String arrayToString(List<String> arr, String separator)=> arr.join(separator);
+  static String arrayToString(List<String> arr, String separator) => arr.where((e) => e.isNotEmpty).toList().join(separator);
 }
 
 

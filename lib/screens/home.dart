@@ -285,7 +285,7 @@ class Home extends StatelessWidget {
                                                         insetPadding: EdgeInsets.all(1),
                                                         content: Column(
                                                           children: [
-                                                            ...stateInstance.signUser.collaborators.split('_^_')
+                                                            ...Constants.stringToArray(stateInstance.signUser.collaborators, Constants.SEPARATOR)
                                                                 .map((e) => ListTile(
                                                               title: Text(e),
                                                               trailing: IconButton(icon: Icon(Icons.check),

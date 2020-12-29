@@ -13,5 +13,8 @@ void main() {
     var tomorrow = DateTime.parse(today.toIso8601String());
     assert(today == tomorrow);
     print(DateTime.now().year);
+
+    var data = '*jorge*crisanto';
+    assert(data.split('*').length == 3);
   });
 }
