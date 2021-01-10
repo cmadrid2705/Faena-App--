@@ -273,7 +273,7 @@ class _ServiceDetailState extends State<ServiceDetail> {
     specs = specs.isEmpty
         ? [User(displayName: 'No hay especialistas aqui')]
         : [...specs];
-    var selectedSpec = specs.first.displayName.obs;
+    var selectedSpec = specs.first.email.obs;
 
     var locationOptions = ['En establecimiento', 'A domicilio'];
     var selectedOption = locationOptions.first.obs;
@@ -323,12 +323,13 @@ class _ServiceDetailState extends State<ServiceDetail> {
                     () => DropdownButton(
                         value: selectedSpec.value,
                         items: [
-                          ...specs.map((s) => s.displayName).map(
-                              (e) => DropdownMenuItem(child: Text(e), value: e))
+                          ...specs.map(
+                              (e) => DropdownMenuItem(child: Text(e.displayName), value: e.email))
                         ],
-                        onChanged: (value) {
-                          selectedSpec.value = value;
-                          cita.specialist = value;
+                        onChanged: (String selectedEmail) {
+                          selectedSpec.value = selectedEmail;
+                          cita.specialistEmail = selectedEmail;
+                          cita.specialist = specs.firstWhere((spec) => spec.email == selectedEmail).displayName;
                         }),
                   )),
                   DropdownButtonHideUnderline(

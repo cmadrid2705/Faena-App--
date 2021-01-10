@@ -37,7 +37,7 @@ class Appointment {
         details = json['details'],
         date = DateTime.parse(json['date']),
         service = json['service'],
-        specialist = json['specialist'],
+        specialist = json['specialist'] ?? '',
         locationType = json['locationType'],
         location = json['location'];
 

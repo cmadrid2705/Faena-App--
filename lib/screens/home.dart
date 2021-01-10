@@ -248,10 +248,8 @@ class Home extends StatelessWidget {
                                 .map((e) => ListTile(
                                       title: Text(e.details),
                                       subtitle: Text(e.date.toString() +
-                                          ' ' +
-                                          (e.specialistEmail.isNotEmpty
-                                              ? e.specialistEmail
-                                              : '(Sin asignar)')),
+                                          ' (' +
+                                          (e.specialist) +')'),
                                     ))
                                 .toList(growable: true),
                           ),
@@ -269,12 +267,10 @@ class Home extends StatelessWidget {
                                 .map((app) => ListTile(
                                       title: Text(app.details),
                                       subtitle: Text(app.date.toString() +
-                                          ' ' +
-                                          (app.specialistEmail.isNotEmpty
-                                              ? app.specialistEmail
-                                              : '(Sin asignar)')),
+                                          ' (' +
+                                          (app.specialist +')')),
                                       trailing: Visibility(
-                                          visible: app.specialistEmail.isEmpty,
+                                          visible: false,
                                           child: GestureDetector(
                                               onTap: () {
                                                 showDialog(
