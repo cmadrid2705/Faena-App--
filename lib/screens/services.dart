@@ -31,7 +31,6 @@ class Services extends StatelessWidget {
               Expanded(child: Text(name)),
             ])),
         body: SafeArea(
-            child: SingleChildScrollView(
                 child: Stack(children: <Widget>[
           Container(
               width: double.infinity,
@@ -46,7 +45,7 @@ class Services extends StatelessWidget {
               ])),
           Container(
               width: double.infinity,
-              alignment: Alignment.center,
+              alignment: Alignment.topCenter,
               padding: EdgeInsets.all(20),
               margin: EdgeInsets.only(top: 100),
               decoration: BoxDecoration(
@@ -54,42 +53,36 @@ class Services extends StatelessWidget {
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30))),
-              child: Column(children: <Widget>[
-                Visibility(
-                    visible: services.isNotEmpty,
-                    child: Container(
-                        child: Column(children: <Widget>[
-                      ListView.builder(
-                          scrollDirection: Axis.vertical,
-                          itemCount: services.length,
-                          shrinkWrap: true,
-                          itemBuilder: (BuildContext context, int index) =>
-                              GestureDetector(
-                                  child: Container(
-                                      padding: EdgeInsets.all(5),
-                                      decoration: BoxDecoration(
-                                          border: Border(
-                                              bottom: BorderSide(
-                                                  width: 1,
-                                                  color: Colors.grey[300]))),
-                                      child: _serviceUI(services[index])),
-                                  onTap: () {
-                                    Get.to(ServiceDetail(service: services[index],));
-                                  })),
-                    ]))),
-                Visibility(
-                  visible: services.isEmpty,
-                  child: Container(
-                      child: Row(children: <Widget>[
+              child: services.isNotEmpty ?
+              ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  itemCount: services.length,
+                  shrinkWrap: true,
+                  itemBuilder: (BuildContext context, int index) =>
+                      GestureDetector(
+                          child: Container(
+                              padding: EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                  border: Border(
+                                      bottom: BorderSide(
+                                          width: 1,
+                                          color: Colors.grey[300]))),
+                              child: _serviceUI(services[index])),
+                          onTap: () {
+                            Get.to(ServiceDetail(service: services[index],));
+                          }))
+              : Container(
+                  child: Row(children: <Widget>[
                     Expanded(
                         child: Text(
                             'Aun no tenemos proveedores en esta categoría.',
                             style: TextStyle(
                                 fontSize: 22, fontWeight: FontWeight.bold)))
-                  ])),
-                )
-              ]))
-        ]))));
+                  ]))
+
+
+              )
+        ])));
   }
 
   Widget _serviceUI(User service) {
