@@ -92,7 +92,7 @@ class Home extends StatelessWidget {
                 height: 20,
               ),
               ListTile(
-                title: Text('Cerrar session'),
+                title: Text('Cerrar sesión'),
                 onTap: () {
                   firebaseInstance.signOut();
                   Get.offAll(Login());
@@ -299,7 +299,8 @@ class Home extends StatelessWidget {
                                     ))
                                 .toList(growable: true),
                           ),
-                        )),
+                        )
+                        ),
                   ),
                   Visibility(
                     visible: stateInstance.signUser.role ==
@@ -313,12 +314,26 @@ class Home extends StatelessWidget {
                             scrollDirection: Axis.vertical,
                             children: specAppointments.value
                                 .map((e) => ListTile(
+                                    leading: e.locationType ==
+                                              Constants.LOCATION_TYPE_HOME
+                                          ? Icon(Icons.home)
+                                          : Icon(Icons.apartment),
                                       title: Text(e.details),
-                                      subtitle: Text(e.date.toString()),
+                                      subtitle: Text(e.date.toString()+
+                                      ' (' +
+                                          (  
+                                              ')\n' +
+                                              (e.locationType ==
+                                                      Constants
+                                                          .LOCATION_TYPE_HOME
+                                                  ? 'Lugar: ' + e.location
+                                                  : ''))+'\nServicio: ' + e.service
+                                      ),
                                     ))
                                 .toList(growable: true),
                           ),
-                        )),
+                        )
+                        ),
                   ),
                 ],
               ),
