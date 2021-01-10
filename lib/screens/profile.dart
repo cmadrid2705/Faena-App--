@@ -43,18 +43,24 @@ class _ProfileState extends State<Profile> {
     final pickedFile =
         await ImagePicker().getImage(source: ImageSource.gallery);
     if (pickedFile == null) return;
-    var currentImages = Constants.stringToArray(stateInstance.signUser.images, Constants.SEPARATOR);
+    var currentImages = Constants.stringToArray(
+        stateInstance.signUser.images, Constants.SEPARATOR);
     FirebaseStorage()
         .ref()
-        .child('business_images/${stateInstance.signUser.email}/image-${currentImages.length + 1}.jpg')
+        .child(
+            'business_images/${stateInstance.signUser.email}/image-${currentImages.length + 1}.jpg')
         .putFile(File(pickedFile.path))
         .onComplete
         .then((value) async {
       var newPicUrl = await value.ref.getDownloadURL();
       firebaseInstance.updateField(
-          stateInstance.signUser.uid, FirebaseService.USER_IMAGES, Constants.arrayToString([...currentImages, newPicUrl], Constants.SEPARATOR));
+          stateInstance.signUser.uid,
+          FirebaseService.USER_IMAGES,
+          Constants.arrayToString(
+              [...currentImages, newPicUrl], Constants.SEPARATOR));
       setState(() {
-        stateInstance.signUser.images = Constants.arrayToString([...currentImages, newPicUrl], Constants.SEPARATOR);
+        stateInstance.signUser.images = Constants.arrayToString(
+            [...currentImages, newPicUrl], Constants.SEPARATOR);
       });
     });
   }
@@ -62,7 +68,9 @@ class _ProfileState extends State<Profile> {
   @override
   void initState() {
     super.initState();
-    firebaseInstance.getServicesByBusiness(stateInstance.signUser.uid).then((value) {
+    firebaseInstance
+        .getServicesByBusiness(stateInstance.signUser.uid)
+        .then((value) {
       setState(() {
         myServices = value;
       });
@@ -114,32 +122,33 @@ class _ProfileState extends State<Profile> {
               ),
               Visibility(
                 visible: stateInstance.signUser.role ==
-                    Constants.ROLE_BEAUTY_SALON ||
+                        Constants.ROLE_BEAUTY_SALON ||
                     stateInstance.signUser.role == Constants.ROLE_BARBERSHOP,
                 child: GestureDetector(
                   onLongPress: uploadBusinessImage,
-                  child: Carrousel(
-                      isForImagesOnly: true,
-                      categoryList: [
-                        if(stateInstance.signUser.images.isNotEmpty)
-                          ...Constants.stringToArray(stateInstance.signUser.images, Constants.SEPARATOR)
-                        .map((e) => Category(
-                            photoURL: e)),
-                        if(stateInstance.signUser.images.isEmpty)
-                        Category(photoURL: Constants.PLACEHOLDER_IMAGE_URL)
+                  child: Carrousel(isForImagesOnly: true, categoryList: [
+                    if (stateInstance.signUser.images.isNotEmpty)
+                      ...Constants.stringToArray(stateInstance.signUser.images,
+                              Constants.SEPARATOR)
+                          .map((e) => Category(photoURL: e)),
+                    if (stateInstance.signUser.images.isEmpty)
+                      Category(photoURL: Constants.PLACEHOLDER_IMAGE_URL)
                   ]),
                 ),
               ),
-              SizedBox(height: 8,),
+              SizedBox(
+                height: 8,
+              ),
               Visibility(
                 visible: stateInstance.signUser.role ==
-                    Constants.ROLE_BEAUTY_SALON ||
+                        Constants.ROLE_BEAUTY_SALON ||
                     stateInstance.signUser.role == Constants.ROLE_BARBERSHOP,
                 child: Container(
                     padding: EdgeInsets.all(8),
                     alignment: Alignment.centerLeft,
                     transform: Matrix4.translationValues(0, -30, 0),
-                    child: Text('Mis ganancias: L. ${stateInstance.signUser.earnings}')),
+                    child: Text(
+                        'Mis ganancias: L. ${stateInstance.signUser.earnings}')),
               ),
               Container(
                   padding: EdgeInsets.all(8),
@@ -149,7 +158,6 @@ class _ProfileState extends State<Profile> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-
                       Text('Nombre: ${stateInstance.signUser.displayName}'),
                       GestureDetector(
                         child: Icon(Icons.edit),
@@ -229,8 +237,10 @@ class _ProfileState extends State<Profile> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                            'Descripcion: ${stateInstance.signUser.description}'),
+                        Flexible(
+                          child: Text(
+                              'Descripcion: ${stateInstance.signUser.description}'),
+                        ),
                         GestureDetector(
                           child: Icon(Icons.edit),
                           onTap: () => _showBottomSheet(
@@ -263,26 +273,29 @@ class _ProfileState extends State<Profile> {
               ),
               if (stateInstance.signUser.role == Constants.ROLE_BEAUTY_SALON ||
                   stateInstance.signUser.role == Constants.ROLE_BARBERSHOP)
-                ...Constants.stringToArray(stateInstance.signUser.collaborators, Constants.SEPARATOR)
-                .map(
-                      (e) => ListTile(
-                        title: Text(e),
-                        trailing: IconButton(
-                            icon: Icon(Icons.close_rounded),
-                            onPressed: () async {
-                              await firebaseInstance.removeCollaborator(
-                                  stateInstance.signUser.uid,
-                                  stateInstance.signUser.collaborators,
-                                  e);
-                              setState(() {
-                                stateInstance.signUser.collaborators =
-                                    Constants.stringToArray(stateInstance.signUser.collaborators, Constants.SEPARATOR)
-                                        .where((r) => r != e)
-                                        .join(Constants.SEPARATOR);
-                              });
-                            }),
-                      ),
-                    ),
+                ...Constants.stringToArray(stateInstance.signUser.collaborators,
+                        Constants.SEPARATOR)
+                    .map(
+                  (e) => ListTile(
+                    title: Text(e),
+                    trailing: IconButton(
+                        icon: Icon(Icons.close_rounded),
+                        onPressed: () async {
+                          await firebaseInstance.removeCollaborator(
+                              stateInstance.signUser.uid,
+                              stateInstance.signUser.collaborators,
+                              e);
+                          setState(() {
+                            stateInstance.signUser.collaborators =
+                                Constants.stringToArray(
+                                        stateInstance.signUser.collaborators,
+                                        Constants.SEPARATOR)
+                                    .where((r) => r != e)
+                                    .join(Constants.SEPARATOR);
+                          });
+                        }),
+                  ),
+                ),
               Visibility(
                 visible: stateInstance.signUser.role ==
                         Constants.ROLE_BEAUTY_SALON ||
@@ -360,7 +373,9 @@ class _ProfileState extends State<Profile> {
                       onPressed: () async {
                         if (label == 'Agregar colaborador') {
                           var serializedValue = [
-                            ...Constants.stringToArray(stateInstance.signUser.collaborators, Constants.SEPARATOR),
+                            ...Constants.stringToArray(
+                                stateInstance.signUser.collaborators,
+                                Constants.SEPARATOR),
                             controller.text
                           ].join(Constants.SEPARATOR);
                           await firebaseInstance.updateField(

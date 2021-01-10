@@ -314,7 +314,7 @@ class _ServiceDetailState extends State<ServiceDetail> {
                           selectedChoice.value = value;
                           cita.service = value;
                           amountToPay.value = services
-                              .firstWhere((e) => e.description.contains(value))
+                              .firstWhere((e) => value.contains(e.description))
                               .price;
                         }),
                   )),
