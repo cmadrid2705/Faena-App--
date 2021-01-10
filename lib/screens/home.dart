@@ -265,39 +265,12 @@ class Home extends StatelessWidget {
                             scrollDirection: Axis.vertical,
                             children: businessAppointments.value
                                 .map((app) => ListTile(
+                                      leading: app.locationType == Constants.LOCATION_TYPE_HOME ? Icon(Icons.home) : Icon(Icons.apartment),
                                       title: Text(app.details),
                                       subtitle: Text(app.date.toString() +
                                           ' (' +
-                                          (app.specialist +')')),
-                                      trailing: Visibility(
-                                          visible: false,
-                                          child: GestureDetector(
-                                              onTap: () {
-                                                showDialog(
-                                                    context: context,
-                                                    builder:
-                                                        (BuildContext context) {
-                                                      return AlertDialog(
-                                                        insetPadding: EdgeInsets.all(1),
-                                                        content: Column(
-                                                          children: [
-                                                            ...Constants.stringToArray(stateInstance.signUser.collaborators, Constants.SEPARATOR)
-                                                                .map((e) => ListTile(
-                                                              title: Text(e),
-                                                              trailing: IconButton(icon: Icon(Icons.check),
-                                                                  onPressed: () async {
-                                                                    await firebaseInstance.assignSpecToAppointment(app.uid, e);
-                                                                    businessAppointments.value.firstWhere((x) => x.uid == app.uid).specialistEmail = e;
-                                                                    businessAppointments.value = [...businessAppointments.value];
-                                                                  }),
-                                                            ),
-                                                            )
-                                                          ],
-                                                        ),
-                                                      );
-                                                    });
-                                              },
-                                              child: Text('Asignar'))),
+                                          (app.specialist +')\n' + (app.locationType == Constants.LOCATION_TYPE_HOME ? 'Lugar: ' + app.location : ''))),
+                                      trailing: Text(app.service),
                                     ))
                                 .toList(growable: true),
                           ),

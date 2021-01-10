@@ -1,3 +1,5 @@
+import 'package:faena/utils/constants.dart';
+
 class Appointment {
   String uid,
       requesterId,
@@ -36,10 +38,10 @@ class Appointment {
         specialistEmail = json['specialistEmail'],
         details = json['details'],
         date = DateTime.parse(json['date']),
-        service = json['service'],
+        service = json['service'] ?? '',
         specialist = json['specialist'] ?? '',
-        locationType = json['locationType'],
-        location = json['location'];
+        locationType = json['locationType'] ?? Constants.LOCATION_TYPE_HOME,
+        location = json['location'] ?? '';
 
   Map<String, dynamic> toJson() => {
         'uid': uid,
