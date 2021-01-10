@@ -1,4 +1,3 @@
-
 import 'package:faena/models/appointment.dart';
 import 'package:faena/models/category.dart';
 import 'package:faena/models/user.dart';
@@ -162,7 +161,8 @@ class Home extends StatelessWidget {
                 children: <Widget>[
                   SizedBox(height: 6),
                   Visibility(
-                    visible: stateInstance.signUser.role == Constants.ROLE_CONSUMER,
+                    visible:
+                        stateInstance.signUser.role == Constants.ROLE_CONSUMER,
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
@@ -179,7 +179,10 @@ class Home extends StatelessWidget {
                                   style: TextStyle(color: Colors.black54)))
                         ]),
                   ),
-                  Visibility(visible: stateInstance.signUser.role == Constants.ROLE_CONSUMER,child: SizedBox(height: 6)),
+                  Visibility(
+                      visible: stateInstance.signUser.role ==
+                          Constants.ROLE_CONSUMER,
+                      child: SizedBox(height: 6)),
                   Container(
                       height: 230,
                       width: screen_size_width,
@@ -194,9 +197,13 @@ class Home extends StatelessWidget {
                               .toList(growable: true),
                         ),
                       )),
-                  Visibility(visible: stateInstance.signUser.role == Constants.ROLE_CONSUMER,child: SizedBox(height: 6)),
                   Visibility(
-                    visible: stateInstance.signUser.role == Constants.ROLE_CONSUMER,
+                      visible: stateInstance.signUser.role ==
+                          Constants.ROLE_CONSUMER,
+                      child: SizedBox(height: 6)),
+                  Visibility(
+                    visible:
+                        stateInstance.signUser.role == Constants.ROLE_CONSUMER,
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
@@ -213,9 +220,13 @@ class Home extends StatelessWidget {
                                   style: TextStyle(color: Colors.black54)))
                         ]),
                   ),
-                  Visibility(visible: stateInstance.signUser.role == Constants.ROLE_CONSUMER,child: SizedBox(height: 6)),
                   Visibility(
-                    visible: stateInstance.signUser.role != Constants.ROLE_STYLIST,
+                      visible: stateInstance.signUser.role ==
+                          Constants.ROLE_CONSUMER,
+                      child: SizedBox(height: 6)),
+                  Visibility(
+                    visible:
+                        stateInstance.signUser.role != Constants.ROLE_STYLIST,
                     child: Container(
                         height: 230,
                         width: screen_size_width,
@@ -237,7 +248,8 @@ class Home extends StatelessWidget {
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                   Visibility(
-                    visible: stateInstance.signUser.role == Constants.ROLE_CONSUMER,
+                    visible:
+                        stateInstance.signUser.role == Constants.ROLE_CONSUMER,
                     child: Container(
                         height: 230,
                         width: screen_size_width,
@@ -249,14 +261,18 @@ class Home extends StatelessWidget {
                                       title: Text(e.details),
                                       subtitle: Text(e.date.toString() +
                                           ' (' +
-                                          (e.specialist) +')'),
+                                          (e.specialist) +
+                                          ')'),
                                     ))
                                 .toList(growable: true),
                           ),
                         )),
                   ),
                   Visibility(
-                    visible: stateInstance.signUser.role == Constants.ROLE_BEAUTY_SALON || stateInstance.signUser.role == Constants.ROLE_BARBERSHOP,
+                    visible: stateInstance.signUser.role ==
+                            Constants.ROLE_BEAUTY_SALON ||
+                        stateInstance.signUser.role ==
+                            Constants.ROLE_BARBERSHOP,
                     child: Container(
                         height: 230,
                         width: screen_size_width,
@@ -265,19 +281,30 @@ class Home extends StatelessWidget {
                             scrollDirection: Axis.vertical,
                             children: businessAppointments.value
                                 .map((app) => ListTile(
-                                      leading: app.locationType == Constants.LOCATION_TYPE_HOME ? Icon(Icons.home) : Icon(Icons.apartment),
+                                      leading: app.locationType ==
+                                              Constants.LOCATION_TYPE_HOME
+                                          ? Icon(Icons.home)
+                                          : Icon(Icons.apartment),
                                       title: Text(app.details),
                                       subtitle: Text(app.date.toString() +
                                           ' (' +
-                                          (app.specialist +')\n' + (app.locationType == Constants.LOCATION_TYPE_HOME ? 'Lugar: ' + app.location : ''))),
-                                      trailing: Text(app.service),
+                                          (app.specialist +
+                                              ')\n' +
+                                              (app.locationType ==
+                                                      Constants
+                                                          .LOCATION_TYPE_HOME
+                                                  ? 'Lugar: ' + app.location
+                                                  : ''))+'\nServicio: ' + app.service),
+                                      //trailing: Text(app.service),
                                     ))
                                 .toList(growable: true),
                           ),
                         )),
                   ),
                   Visibility(
-                      visible: stateInstance.signUser.role == Constants.ROLE_BARBER || stateInstance.signUser.role == Constants.ROLE_STYLIST,
+                    visible: stateInstance.signUser.role ==
+                            Constants.ROLE_BARBER ||
+                        stateInstance.signUser.role == Constants.ROLE_STYLIST,
                     child: Container(
                         height: 230,
                         width: screen_size_width,
