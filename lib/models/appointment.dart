@@ -27,6 +27,7 @@ class Appointment {
     requesterId ??= '';
     businessId ??= '';
     specialistEmail ??= '';
+    
     details = service = specialist = locationType = location ??= '';
     date ??= DateTime.now().add(Duration(days: 1));
   }

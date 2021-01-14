@@ -4,12 +4,12 @@ import 'package:faena/models/appointment.dart';
 import 'package:faena/models/category.dart' as models;
 import 'package:faena/models/user.dart';
 import 'package:faena/services/firebase_service.dart';
-import 'package:faena/services/geolocator_service.dart';
+
 import 'package:faena/services/state_management_service.dart';
 import 'package:faena/utils/constants.dart';
 import 'package:faena/widgets/carrousel.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -127,66 +127,6 @@ class _ServiceDetailState extends State<ServiceDetail> {
     );
   }
 
-  Widget _buildMap(LatLng latLng, User service) {
-    return Stack(children: [
-      Container(
-        child: GoogleMap(
-            mapType: MapType.normal,
-            // zoomGesturesEnabled: true,
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            // scrollGesturesEnabled: true,
-            zoomControlsEnabled: false,
-            markers: Set.from(_buildMarkers(context, service)),
-            onTap: (LatLng location) {
-              // setState(() {
-              //   pinPillPosition = -250;
-              // });
-            },
-            initialCameraPosition: CameraPosition(
-              target: LatLng(latLng.latitude, latLng.longitude),
-              zoom: 16.0,
-            ),
-            onMapCreated: _onMapCreated,
-            gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>[
-              new Factory<OneSequenceGestureRecognizer>(
-                () => new EagerGestureRecognizer(),
-              ),
-            ].toSet()),
-      ),
-      Positioned(
-          bottom: 25,
-          left: -10,
-          child: RawMaterialButton(
-              onPressed: getCurrentPosition,
-              elevation: 10,
-              fillColor: Colors.blue,
-              child: Icon(Icons.location_searching, color: Colors.white),
-              padding: EdgeInsets.all(15),
-              shape: CircleBorder()))
-    ]);
-  }
-
-  getCurrentPos() async {
-    try {
-      Position position = await geolocatorService.getCurrentPosition();
-      geolocatorService
-          .setCurrentLocation(LatLng(position.latitude, position.longitude));
-      return LatLng(position.latitude, position.longitude);
-    } catch (e) {}
-  }
-
-  getCurrentPosition() async {
-    final GoogleMapController controller = await _controller.future;
-    position = await geolocatorService.getCurrentPosition();
-    controller.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
-      bearing: 0,
-      target: LatLng(position.latitude, position.longitude),
-      zoom: 14.0,
-    )));
-    geolocatorService
-        .setCurrentLocation(LatLng(position.latitude, position.longitude));
-  }
 
   LatLng setPosition() {
     LatLng latLng = LatLng(0, 0);
