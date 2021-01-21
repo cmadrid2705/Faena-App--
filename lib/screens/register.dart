@@ -14,8 +14,7 @@ import 'login.dart';
 class Register extends StatelessWidget {
   final _registerForm = GlobalKey<FormState>();
   var _loading = RxBool(false);
-  String firstName;
-  String lastName;
+  String names;
   String password;
   var _userRole = RxString(Constants.ROLE_CONSUMER);
   final userUpdateInfo = UserUpdateInfo();
@@ -26,10 +25,7 @@ class Register extends StatelessWidget {
     return Stack(
       children: <Widget>[
         _buildUI(),
-        Obx(() => Visibility(
-            visible: _loading.value,
-            child: Loading()
-        )),
+        Obx(() => Visibility(visible: _loading.value, child: Loading())),
       ],
     );
   }
@@ -51,16 +47,12 @@ class Register extends StatelessWidget {
                       children: <Widget>[
                         Text(
                           'Crear Cuenta',
-                          style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.w600),
                         ),
                         Container(
                           margin: EdgeInsets.only(top: 10),
                           child: _buildeNameTextField(),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child: _buildeLastNameTextField(),
                         ),
                         Container(
                           margin: EdgeInsets.only(top: 10),
@@ -94,7 +86,7 @@ class Register extends StatelessWidget {
         child: RaisedButton(
           padding: const EdgeInsets.only(top: 15.0, bottom: 15.0),
           shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
           child: Text('Registrate',
               style: TextStyle(
                   color: Colors.white,
@@ -106,18 +98,22 @@ class Register extends StatelessWidget {
               _loading.value = true;
               try {
                 AuthResult result =
-                await firebaseInstance.createUserWithEmailAndPassword(stateInstance.signUser.email, password);
+                    await firebaseInstance.createUserWithEmailAndPassword(
+                        stateInstance.signUser.email, password);
                 final FirebaseUser user = result.user;
                 userUpdateInfo.displayName =
-                    stateInstance.signUser.displayName = firstName + ' ' + lastName;
+                    stateInstance.signUser.displayName = names;
                 stateInstance.signUser.uid = user.uid;
                 await user.updateProfile(userUpdateInfo);
-                await firebaseInstance.createUserFirestore(stateInstance.signUser);
+                await firebaseInstance
+                    .createUserFirestore(stateInstance.signUser);
                 _loading.value = false;
-                firebaseInstance.signInWithEmailAndPassword(stateInstance.signUser.email, password);
+                firebaseInstance.signInWithEmailAndPassword(
+                    stateInstance.signUser.email, password);
                 firebaseInstance.getUserById(result.user.uid).then((value) {
                   stateInstance.signUser = value;
-                  stateInstance.displayName.value = stateInstance.signUser.displayName;
+                  stateInstance.displayName.value =
+                      stateInstance.signUser.displayName;
                 });
                 Get.offAll(Home());
               } on AuthException catch (error) {
@@ -143,28 +139,13 @@ class Register extends StatelessWidget {
 
   Widget _buildeNameTextField() {
     return TextFormField(
-        validator: (value) => value.isEmpty ? 'El campo no puede ir vacio' : null,
-        onChanged: (value) => firstName = value,
+        validator: (value) =>
+            value.isEmpty ? 'El campo no puede ir vacio' : null,
+        onChanged: (value) => names = value,
         keyboardType: TextInputType.text,
         decoration: InputDecoration(
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(7.0)),
-          labelText: "* Nombres",
-          labelStyle: TextStyle(color: Colors.grey[700]),
-          focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.black, width: 1.0),
-            borderRadius: BorderRadius.circular(7.0),
-          ),
-        ));
-  }
-
-  Widget _buildeLastNameTextField() {
-    return TextFormField(
-        validator: (value) => value.isEmpty ? 'El campo no puede ir vacio' : null,
-        onChanged: (value) => lastName = value,
-        keyboardType: TextInputType.text,
-        decoration: InputDecoration(
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(7.0)),
-          labelText: "* Apellidos",
+          labelText: "* Nombres y Apellidos",
           labelStyle: TextStyle(color: Colors.grey[700]),
           focusedBorder: OutlineInputBorder(
             borderSide: const BorderSide(color: Colors.black, width: 1.0),
@@ -175,7 +156,8 @@ class Register extends StatelessWidget {
 
   Widget _buildeEmailTextField() {
     return TextFormField(
-        validator: (val) => !GetUtils.isEmail(val) ? 'Introduce un correo valido' : null,
+        validator: (val) =>
+            !GetUtils.isEmail(val) ? 'Introduce un correo valido' : null,
         onChanged: (value) => stateInstance.signUser.email = value,
         keyboardType: TextInputType.emailAddress,
         decoration: InputDecoration(
@@ -192,15 +174,18 @@ class Register extends StatelessWidget {
   Widget _buildePasswordTextField() {
     return Obx(
       () => TextFormField(
-          validator: (value)  => value.isEmpty
+          validator: (value) => value.isEmpty
               ? 'Debe introducir una contraseña'
-              : value.length < 6 ? 'La contraseña debe tener al menos 6 caracteres'
-              : null,
-          obscureText: 'Contraseña' == 'Contraseña' ? _isPasswordHidden.value : false,
+              : value.length < 6
+                  ? 'La contraseña debe tener al menos 6 caracteres'
+                  : null,
+          obscureText:
+              'Contraseña' == 'Contraseña' ? _isPasswordHidden.value : false,
           onChanged: (value) => password = value,
           // keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(7.0)),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(7.0)),
             labelText: "* Contraseña",
             labelStyle: TextStyle(color: Colors.grey[700]),
             focusedBorder: OutlineInputBorder(
@@ -209,13 +194,13 @@ class Register extends StatelessWidget {
             ),
             suffixIcon: 'Contraseña' == 'Contraseña'
                 ? IconButton(
-              onPressed: () {
-                  _isPasswordHidden.value = !_isPasswordHidden.value;
-              },
-              icon: _isPasswordHidden.value
-                  ? Icon(Icons.visibility_off, color: Colors.grey)
-                  : Icon(Icons.visibility, color: Colors.grey),
-            )
+                    onPressed: () {
+                      _isPasswordHidden.value = !_isPasswordHidden.value;
+                    },
+                    icon: _isPasswordHidden.value
+                        ? Icon(Icons.visibility_off, color: Colors.grey)
+                        : Icon(Icons.visibility, color: Colors.grey),
+                  )
                 : null,
           )),
     );
@@ -226,25 +211,30 @@ class Register extends StatelessWidget {
         padding: EdgeInsets.only(left: 10, right: 10),
         child: DropdownButtonHideUnderline(
             child: Obx(
-              () => DropdownButton(
-                  value: _userRole.value,
-                  items: [
-                    DropdownMenuItem(
-                        child: Text('Quiero Contratar'), value: Constants.ROLE_CONSUMER),
-                    DropdownMenuItem(
-                        child: Text('Quiero Brindar Servicios (Barbero)'), value: Constants.ROLE_BARBER),
-                    DropdownMenuItem(
-                        child: Text('Quiero Brindar Servicios (Estilista)'), value: Constants.ROLE_STYLIST),
-                    DropdownMenuItem(
-                        child: Text('Quiero Brindar Servicios (Barberia)'), value: Constants.ROLE_BARBERSHOP),
-                    DropdownMenuItem(
-                        child: Text('Quiero Brindar Servicios (Salon)'), value: Constants.ROLE_BEAUTY_SALON)
-                  ],
-                  onChanged: (value) {
-                    stateInstance.signUser.role = value;
-                    _userRole.value = value;
-                  }),
-            )));
+          () => DropdownButton(
+              value: _userRole.value,
+              items: [
+                DropdownMenuItem(
+                    child: Text('Quiero Contratar'),
+                    value: Constants.ROLE_CONSUMER),
+                DropdownMenuItem(
+                    child: Text('Quiero Brindar Servicios (Barbero)'),
+                    value: Constants.ROLE_BARBER),
+                DropdownMenuItem(
+                    child: Text('Quiero Brindar Servicios (Estilista)'),
+                    value: Constants.ROLE_STYLIST),
+                DropdownMenuItem(
+                    child: Text('Quiero Brindar Servicios (Barberia)'),
+                    value: Constants.ROLE_BARBERSHOP),
+                DropdownMenuItem(
+                    child: Text('Quiero Brindar Servicios (Salon)'),
+                    value: Constants.ROLE_BEAUTY_SALON)
+              ],
+              onChanged: (value) {
+                stateInstance.signUser.role = value;
+                _userRole.value = value;
+              }),
+        )));
   }
 
   Widget _loginOption() {
@@ -263,12 +253,12 @@ class Register extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text('Mensaje De Error'),
           content: (_message ==
-              "PlatformException(ERROR_EMAIL_ALREADY_IN_USE, The email address is already in use by another account., null)")
+                  "PlatformException(ERROR_EMAIL_ALREADY_IN_USE, The email address is already in use by another account., null)")
               ? Text(
-              '¡La dirección de correo electrónico ya está en uso por otra cuenta!')
+                  '¡La dirección de correo electrónico ya está en uso por otra cuenta!')
               : Text(_message),
           actions: <Widget>[
             FlatButton(

@@ -64,6 +64,46 @@ class FirebaseService {
     return batch.commit();
   }
 
+  Future rateStore(String storeId, String userId, double totalRate, int rate) {
+    var batch = Firestore.instance.batch();
+    var docRef = _firestore.collection('ratings').document();
+    var docRefStore = _firestore.collection('users').document(storeId);
+    var uid = docRef.documentID;
+    batch.setData(docRef,
+        {'storeId': storeId, 'userId': userId, 'rate': rate, 'uid': uid});
+    batch.updateData(docRefStore, {'rating': totalRate});
+    return batch.commit();
+  }
+
+  Future updateRateStore(String storeId, String uid, double rate, int newRate) {
+    var batch = Firestore.instance.batch();
+    var docRef = _firestore.collection('ratings').document(uid);
+    var docRefStore = _firestore.collection('users').document(storeId);
+    batch.updateData(docRef, {'rate': newRate});
+    batch.updateData(docRefStore, {'rating': rate});
+    return batch.commit();
+  }
+
+  Future<List<dynamic>> getRatingsByStoreIdUserId(
+      String storeId, String userId) async {
+    QuerySnapshot snapshot = await _firestore
+        .collection('ratings')
+        .where('storeId', isEqualTo: storeId)
+        .where('userId', isEqualTo: userId)
+        .getDocuments();
+    var values = snapshot.documents.map((d) => d.data).toList();
+    return values;
+  }
+
+  Future<List<dynamic>> getRatingsByStoreId(String storeId) async {
+    QuerySnapshot snapshot = await _firestore
+        .collection('ratings')
+        .where('storeId', isEqualTo: storeId)
+        .getDocuments();
+    var values = snapshot.documents.map((d) => d.data).toList();
+    return values;
+  }
+
   Future<User> getUserById(String id) async {
     DocumentSnapshot snapshot =
         await _firestore.collection(USERS).document(id).get();
@@ -98,6 +138,7 @@ class FirebaseService {
     QuerySnapshot snapshot = await _firestore
         .collection(USERS)
         .where(USER_ROLE, isEqualTo: Constants.ROLE_BARBER)
+        .orderBy('rating', descending: true)
         .getDocuments();
     var allBarbers =
         snapshot.documents.map((d) => User.fromJson(d.data)).toList();
@@ -111,15 +152,18 @@ class FirebaseService {
         .where(USER_ROLE, isEqualTo: Constants.ROLE_BARBER)
         .getDocuments();
     var allBarbers =
-    snapshot.documents.map((d) => User.fromJson(d.data)).toList();
+        snapshot.documents.map((d) => User.fromJson(d.data)).toList();
     allBarbers.removeWhere((d) => d.uid == stateInstance.signUser.uid);
-    return allBarbers.where((element) => emails.contains(element.email)).toList();
+    return allBarbers
+        .where((element) => emails.contains(element.email))
+        .toList();
   }
 
   Future<List<User>> getStylists() async {
     QuerySnapshot snapshot = await _firestore
         .collection(USERS)
         .where(USER_ROLE, isEqualTo: Constants.ROLE_STYLIST)
+        .orderBy('rating', descending: true)
         .getDocuments();
     var allStylists =
         snapshot.documents.map((d) => User.fromJson(d.data)).toList();
@@ -127,7 +171,7 @@ class FirebaseService {
     return allStylists;
   }
 
-Future<List<User>> getStylistsByEmail(List<String> emails) async {
+  Future<List<User>> getStylistsByEmail(List<String> emails) async {
     QuerySnapshot snapshot = await _firestore
         .collection(USERS)
         .where(USER_ROLE, isEqualTo: Constants.ROLE_STYLIST)
@@ -136,7 +180,9 @@ Future<List<User>> getStylistsByEmail(List<String> emails) async {
         snapshot.documents.map((d) => User.fromJson(d.data)).toList();
     allStylists.removeWhere((d) => d.uid == stateInstance.signUser.uid);
 
-    return allStylists.where((element) => emails.contains(element.email)).toList();
+    return allStylists
+        .where((element) => emails.contains(element.email))
+        .toList();
   }
 
   Future removeCollaborator(
@@ -156,17 +202,17 @@ Future<List<User>> getStylistsByEmail(List<String> emails) async {
         .where(APPT_REQ_ID, isEqualTo: uid)
         .getDocuments();
     var values =
-    snapshot.documents.map((d) => Appointment.fromJson(d.data)).toList();
+        snapshot.documents.map((d) => Appointment.fromJson(d.data)).toList();
     return values;
   }
 
   Future<List<Appointment>> getAppointmentsAsBusiness(String uid) async {
     QuerySnapshot snapshot = await _firestore
         .collection(APPOINTMENTS)
-        .where(APPT_BUS_ID, isEqualTo: uid)
+        .where('businessId', isEqualTo: uid)
         .getDocuments();
     var values =
-    snapshot.documents.map((d) => Appointment.fromJson(d.data)).toList();
+        snapshot.documents.map((d) => Appointment.fromJson(d.data)).toList();
     return values;
   }
 
@@ -176,15 +222,14 @@ Future<List<User>> getStylistsByEmail(List<String> emails) async {
         .where(APPT_SPEC_EMAIL, isEqualTo: email)
         .getDocuments();
     var values =
-    snapshot.documents.map((d) => Appointment.fromJson(d.data)).toList();
+        snapshot.documents.map((d) => Appointment.fromJson(d.data)).toList();
     return values;
   }
 
-  Future assignSpecToAppointment(String appId, String email) =>
-    _firestore
-        .collection(APPOINTMENTS)
-        .document(appId)
-        .updateData({'specialistEmail': email});
+  Future assignSpecToAppointment(String appId, String email) => _firestore
+      .collection(APPOINTMENTS)
+      .document(appId)
+      .updateData({'specialistEmail': email});
 
   Future<void> sendPasswordResetEmail(String email) {
     return _auth.sendPasswordResetEmail(email: email);
@@ -192,7 +237,7 @@ Future<List<User>> getStylistsByEmail(List<String> emails) async {
 
   Future<List<Service>> getServicesByBusiness(String ownerId) async {
     QuerySnapshot snapshot = await _firestore
-    .collection(SERVICES)
+        .collection(SERVICES)
         .where(SERVICE_OWNER_ID, isEqualTo: ownerId)
         .getDocuments();
 
@@ -210,16 +255,12 @@ Future<List<User>> getStylistsByEmail(List<String> emails) async {
   }
 
   Future<void> removeService(String uid) =>
-    _firestore
-    .collection(SERVICES)
-        .document(uid)
-        .delete();
+      _firestore.collection(SERVICES).document(uid).delete();
 
-  Future<void> payService(String uid, double amountToPay) =>
-    _firestore
-        .collection(USERS)
-        .document(uid)
-        .updateData({USER_EARNINGS: amountToPay - (amountToPay * 0.14)});
+  Future<void> payService(String uid, double amountToPay) => _firestore
+      .collection(USERS)
+      .document(uid)
+      .updateData({USER_EARNINGS: amountToPay - (amountToPay * 0.14)});
 }
 
 final firebaseInstance = FirebaseService();

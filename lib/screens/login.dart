@@ -7,10 +7,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/route_manager.dart';
-
+import '../services/firebase_service.dart';
 import 'home.dart';
 
-class Login extends StatelessWidget  {
+class Login extends StatelessWidget {
   var _isPasswordHidden = RxBool(true);
   final _loginForm = GlobalKey<FormState>();
   String email;
@@ -19,65 +19,106 @@ class Login extends StatelessWidget  {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        _buildUI(),
-        Obx(() => Visibility(
-            visible: _loading.value,
-            child: Loading()
-        )),
-      ],
-    );
+    return Stack(children: <Widget>[
+      _buildUI(context),
+      Obx(() => Visibility(visible: _loading.value, child: Loading())),
+    ]);
   }
 
-  Widget _buildUI() {
+  Widget _buildUI(context) {
     return Scaffold(
-      // appBar: _createAppbar(context),
+        // appBar: _createAppbar(context),
         body: SafeArea(
             child: SingleChildScrollView(
-              child: Container(
-                color: Colors.white,
-                padding: EdgeInsets.only(top: 50, left: 15, right: 15),
-                child: Form(
-                  key: _loginForm,
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        Container(
-                            width: 60,
-                            height: 80,
-                            margin: EdgeInsets.all(15),
-                            decoration: BoxDecoration(
-                                image: DecorationImage(
-                                    image: AssetImage('logo.png')))),
-                        Container(
-                            margin: EdgeInsets.only(top: 10),
-                            child: _buildEmailTextFiel()),
-                        Container(
-                          margin: EdgeInsets.only(top: 10, bottom: 15),
-                          child: _buildTextField('Contraseña'),
-                        ),
-                        GestureDetector(
-                          child: Text('¿Olvidaste la contraseña?',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.blue[800])),
-                          onTap: () {
-                            Get.to(PasswordRecovery());
-                          },
-                        ),
-                        Container(
-                            margin: EdgeInsets.only(top: 80, bottom: 20),
-                            child: _loginButton()),
-                        _registerOption(),
-                      ]),
+      child: Container(
+        color: Colors.white,
+        padding: EdgeInsets.only(top: 50, left: 15, right: 15),
+        child: Form(
+          key: _loginForm,
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Container(
+                    width: 60,
+                    height: 80,
+                    margin: EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                        image: DecorationImage(image: AssetImage('logo.png')))),
+                Container(
+                    margin: EdgeInsets.only(top: 10),
+                    child: _buildEmailTextFiel()),
+                Container(
+                  margin: EdgeInsets.only(top: 10, bottom: 15),
+                  child: _buildTextField('Contraseña'),
                 ),
-              ),
-            )));
+                GestureDetector(
+                    child: Text('¿Olvidaste la contraseña?',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Colors.blue[800],
+                            fontWeight: FontWeight.bold)),
+                    onTap: () {
+                      _passwordRecovery(context);
+                    }),
+                Container(
+                    margin: EdgeInsets.only(top: 80, bottom: 20),
+                    child: _loginButton()),
+                _registerOption(),
+              ]),
+        ),
+      ),
+    )));
+  }
+
+  _passwordRecovery(context) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          if (email == null || email == '') {
+            return AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                content: Text(
+                    "No hay ningún correo para realizar el proceso de cambio de contraseña."),
+                actions: [
+                  FlatButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text('Entendido',
+                          style: TextStyle(color: Colors.red)))
+                ]);
+          } else {
+            return AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                content: Text(
+                    "Se enviara un correo a $email para realizar el proceso de cambio de contraseña."),
+                actions: [
+                  FlatButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text('Cancelar',
+                          style: TextStyle(color: Colors.red))),
+                  FlatButton(
+                      color: Colors.green,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15)),
+                      onPressed: () {
+                        firebaseInstance.sendPasswordResetEmail(email);
+                        Navigator.pop(context);
+                      },
+                      child: Text('Enviar'))
+                ]);
+          }
+        });
   }
 
   Widget _buildEmailTextFiel() {
     return TextFormField(
-      validator: (val) => !GetUtils.isEmail(val) ? 'Introduce un correo valido' : null,
+      validator: (val) =>
+          !GetUtils.isEmail(val) ? 'Introduce un correo valido' : null,
       keyboardType: TextInputType.emailAddress,
       onChanged: (value) => email = value,
       decoration: InputDecoration(
@@ -94,32 +135,31 @@ class Login extends StatelessWidget  {
 
   Widget _buildTextField(String hintText) {
     return Obx(() => TextFormField(
-      validator: (value)  => value.isEmpty
-          ? 'Debe introducir una contraseña'
-          : value.length < 6 ? 'La contraseña debe tener al menos 6 caracteres'
-          : null,
-      onChanged: (value) => password = value,
-      obscureText: hintText == 'Contraseña' ? _isPasswordHidden.value : false,
-      decoration: InputDecoration(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(7.0)),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.black, width: 1.0),
-          borderRadius: BorderRadius.circular(7.0),
-        ),
-        labelStyle: TextStyle(color: Colors.grey[700]),
-        labelText: '* $hintText',
-        suffixIcon: hintText == 'Contraseña'
-            ? IconButton(
-            onPressed: () {
-              _isPasswordHidden.value = !_isPasswordHidden.value;
-            },
-            icon: _isPasswordHidden.value
-                ? Icon(Icons.visibility_off, color: Colors.grey)
-                : Icon(Icons.visibility, color: Colors.grey)
-        )
-            : null,
-      ),
-    ));
+        validator: (value) => value.isEmpty
+            ? 'Debe introducir una contraseña'
+            : value.length < 6
+                ? 'La contraseña debe tener al menos 6 caracteres'
+                : null,
+        onChanged: (value) => password = value,
+        obscureText: hintText == 'Contraseña' ? _isPasswordHidden.value : false,
+        decoration: InputDecoration(
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(7.0)),
+            focusedBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: Colors.black, width: 1.0),
+              borderRadius: BorderRadius.circular(7.0),
+            ),
+            labelStyle: TextStyle(color: Colors.grey[700]),
+            labelText: '* $hintText',
+            suffixIcon: hintText == 'Contraseña'
+                ? IconButton(
+                    onPressed: () {
+                      _isPasswordHidden.value = !_isPasswordHidden.value;
+                    },
+                    icon: _isPasswordHidden.value
+                        ? Icon(Icons.visibility_off, color: Colors.grey)
+                        : Icon(Icons.visibility, color: Colors.grey))
+                : null)));
   }
 
   Widget _registerOption() {
@@ -128,11 +168,12 @@ class Login extends StatelessWidget  {
         Get.to(Register());
       },
       child:
-      Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
         Text('¿No tienes cuenta?'),
         Text(
           ' Crear Cuenta',
-          style: TextStyle(color: Color(0xff0435d1), fontWeight: FontWeight.w700),
+          style:
+              TextStyle(color: Color(0xff0435d1), fontWeight: FontWeight.w700),
         )
       ]),
     );
@@ -163,13 +204,14 @@ class Login extends StatelessWidget  {
         if (form.validate()) {
           _loading.value = true;
           try {
-            AuthResult result =
-            await firebaseInstance.signInWithEmailAndPassword(email, password);
+            AuthResult result = await firebaseInstance
+                .signInWithEmailAndPassword(email, password);
             if (result.user.uid != null) {
               _loading.value = false;
               firebaseInstance.getUserById(result.user.uid).then((value) {
                 stateInstance.signUser = value;
-                stateInstance.displayName.value = stateInstance.signUser.displayName;
+                stateInstance.displayName.value =
+                    stateInstance.signUser.displayName;
                 Get.offAll(Home());
               });
             }
@@ -188,22 +230,21 @@ class Login extends StatelessWidget  {
 
   Future _buildErrorDialog(_message) {
     return showDialog(
-      context: Get.context,
-      builder: (context) {
-        return AlertDialog(
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Text(''),
-          content: Text('¡El correo o la contraseña son incorrectas!'),
-          actions: <Widget>[
-            FlatButton(
-                child: Text('Cancelar'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                })
-          ],
-        );
-      }
-    );
+        context: Get.context,
+        builder: (context) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Text(''),
+            content: Text('¡El correo o la contraseña son incorrectas!'),
+            actions: <Widget>[
+              FlatButton(
+                  child: Text('Cancelar'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  })
+            ],
+          );
+        });
   }
 }

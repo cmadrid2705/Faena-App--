@@ -10,6 +10,7 @@ class Appointment {
       specialist,
       locationType,
       location;
+  int dateOrder;
   DateTime date;
 
   Appointment(
@@ -19,6 +20,7 @@ class Appointment {
       this.specialistEmail,
       this.details,
       this.date,
+      this.dateOrder,
       this.service,
       this.specialist,
       this.locationType,
@@ -27,7 +29,7 @@ class Appointment {
     requesterId ??= '';
     businessId ??= '';
     specialistEmail ??= '';
-    
+
     details = service = specialist = locationType = location ??= '';
     date ??= DateTime.now().add(Duration(days: 1));
   }
@@ -38,6 +40,7 @@ class Appointment {
         businessId = json['businessId'],
         specialistEmail = json['specialistEmail'],
         details = json['details'],
+        dateOrder = json['dateOrder'],
         date = DateTime.parse(json['date']),
         service = json['service'] ?? '',
         specialist = json['specialist'] ?? '',
@@ -51,6 +54,7 @@ class Appointment {
         'specialistEmail': specialistEmail,
         'details': details,
         'date': date.toIso8601String(),
+        'dateOrder': dateOrder,
         'service': service,
         'specialist': specialist,
         'locationType': locationType,

@@ -4,22 +4,30 @@ import 'package:faena/services/firebase_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/route_manager.dart';
 
-class Services extends StatelessWidget {
+class Services extends StatefulWidget {
   final String name;
   const Services({Key key, this.name}) : super(key: key);
 
   @override
+  _ServicesState createState() => _ServicesState();
+}
+
+class _ServicesState extends State<Services> {
+  String refresh;
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-      stream: firebaseInstance.getServices(name).asStream().asBroadcastStream(),
-      builder: (BuildContext context, AsyncSnapshot<List<User>> snapshot) {
-        if (snapshot.hasData) {
-          return _buildUI(snapshot.data);
-        } else {
-          return Container();
-        }
-      },
-    );
+        stream: firebaseInstance
+            .getServices(widget.name)
+            .asStream()
+            .asBroadcastStream(),
+        builder: (BuildContext context, AsyncSnapshot<List<User>> snapshot) {
+          if (snapshot.hasData) {
+            return _buildUI(snapshot.data);
+          } else {
+            return Container();
+          }
+        });
   }
 
   Widget _buildUI(List<User> services) {
@@ -28,61 +36,59 @@ class Services extends StatelessWidget {
         appBar: AppBar(
             backgroundColor: Color(0xff0435d1),
             title: Row(children: <Widget>[
-              Expanded(child: Text(name)),
+              Expanded(child: Text(widget.name)),
             ])),
         body: SafeArea(
-                child: Stack(children: <Widget>[
+            child: Stack(children: <Widget>[
           Container(
               width: double.infinity,
               decoration: BoxDecoration(color: Color(0xff0435d1)),
-              child: Column(children: <Widget>[
-                Container(
-                    margin: EdgeInsets.only(
-                        top: 20, bottom: 100, left: 15, right: 15),
-                    child: Text('category.description',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white)))
-              ])),
+              child: Column(children: <Widget>[])),
           Container(
               width: double.infinity,
               alignment: Alignment.topCenter,
               padding: EdgeInsets.all(20),
-              margin: EdgeInsets.only(top: 100),
+              margin: EdgeInsets.only(top: 50),
               decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30))),
-              child: services.isNotEmpty ?
-              ListView.builder(
-                  scrollDirection: Axis.vertical,
-                  itemCount: services.length,
-                  shrinkWrap: true,
-                  itemBuilder: (BuildContext context, int index) =>
-                      GestureDetector(
-                          child: Container(
-                              padding: EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                  border: Border(
-                                      bottom: BorderSide(
-                                          width: 1,
-                                          color: Colors.grey[300]))),
-                              child: _serviceUI(services[index])),
-                          onTap: () {
-                            Get.to(ServiceDetail(service: services[index],));
-                          }))
-              : Container(
-                  child: Row(children: <Widget>[
-                    Expanded(
-                        child: Text(
-                            'Aun no tenemos proveedores en esta categoría.',
-                            style: TextStyle(
-                                fontSize: 22, fontWeight: FontWeight.bold)))
-                  ]))
-
-
-              )
+              child: services.isNotEmpty
+                  ? ListView.builder(
+                      scrollDirection: Axis.vertical,
+                      itemCount: services.length,
+                      shrinkWrap: true,
+                      itemBuilder: (BuildContext context, int index) =>
+                          GestureDetector(
+                              child: Container(
+                                  padding: EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                      border: Border(
+                                          bottom: BorderSide(
+                                              width: 1,
+                                              color: Colors.grey[300]))),
+                                  child: _serviceUI(services[index])),
+                              onTap: () {
+                                Get.to(ServiceDetail(
+                                    service: services[index],
+                                    refreshScreen: refreshScreen));
+                              }))
+                  : Container(
+                      child: Row(children: <Widget>[
+                      Expanded(
+                          child: Text(
+                              'Aun no tenemos proveedores en esta categoría.',
+                              style: TextStyle(
+                                  fontSize: 22, fontWeight: FontWeight.bold)))
+                    ])))
         ])));
+  }
+
+  refreshScreen(text) {
+    setState(() {
+      refresh = text;
+    });
   }
 
   Widget _serviceUI(User service) {
@@ -100,13 +106,9 @@ class Services extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
             Container(child: Text(service.displayName)),
-            Container(
-                margin: EdgeInsets.only(top: 5),
-                child: Text(
-                  'Horario: ' + service.schedule,
-                  style: TextStyle(color: Colors.blue, fontSize: 12),
-                ))
           ])),
+      Text('${service.rating}'),
+      Icon(Icons.star, color: Colors.yellow[800]),
       Icon(Icons.chevron_right, color: Colors.grey)
     ]);
   }

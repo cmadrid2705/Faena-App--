@@ -5,7 +5,9 @@ import 'package:faena/models/service.dart';
 import 'package:faena/services/firebase_service.dart';
 import 'package:faena/services/state_management_service.dart';
 import 'package:faena/utils/constants.dart';
+
 import 'package:faena/widgets/carrousel.dart';
+import 'package:faena/widgets/profile_update_schedule.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -98,7 +100,7 @@ class _ProfileState extends State<Profile> {
             width: double.infinity,
             alignment: Alignment.center,
             padding: EdgeInsets.all(20),
-            margin: EdgeInsets.only(top: 100),
+            margin: EdgeInsets.only(top: 60),
             decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
@@ -185,14 +187,46 @@ class _ProfileState extends State<Profile> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Horario: ${stateInstance.signUser.schedule}'),
+                        Expanded(
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                              Text('Horario:'),
+                              (stateInstance.signUser.schedule['monday'] ==
+                                      null)
+                                  ? Container()
+                                  : schedule('monday', 'Lunes'),
+                              (stateInstance.signUser.schedule['tuesday'] ==
+                                      null)
+                                  ? Container()
+                                  : schedule('tuesday', 'Martes'),
+                              (stateInstance.signUser.schedule['wednesday'] ==
+                                      null)
+                                  ? Container()
+                                  : schedule('wednesday', 'Miércoles'),
+                              (stateInstance.signUser.schedule['thursday'] ==
+                                      null)
+                                  ? Container()
+                                  : schedule('thursday', 'Jueves'),
+                              (stateInstance.signUser.schedule['friday'] ==
+                                      null)
+                                  ? Container()
+                                  : schedule('friday', 'Viernes'),
+                              (stateInstance.signUser.schedule['saturday'] ==
+                                      null)
+                                  ? Container()
+                                  : schedule('saturday', 'Sábado'),
+                              (stateInstance.signUser.schedule['sunday'] ==
+                                      null)
+                                  ? Container()
+                                  : schedule('sunday', 'Domingo')
+                            ])),
                         GestureDetector(
-                          child: Icon(Icons.edit),
-                          onTap: () => _showBottomSheet(
-                              label: 'Horario',
-                              fieldName: 'schedule',
-                              value: stateInstance.signUser.schedule),
-                        )
+                            child: Icon(Icons.edit),
+                            onTap: () {
+                              Get.to(ProfileUpdateSchedule(
+                                  refreshScreen: refreshScreen));
+                            })
                       ],
                     )),
               ),
@@ -339,6 +373,18 @@ class _ProfileState extends State<Profile> {
     );
   }
 
+  Widget schedule(type, day) {
+    return Text(
+        '$day: Desde ${stateInstance.signUser.schedule[type]['from']}:00 - Hasta ${stateInstance.signUser.schedule[type]['to']}:00',
+        style: TextStyle(color: Colors.grey[600]));
+  }
+
+  refreshScreen(mapSchedule) {
+    setState(() {
+      stateInstance.signUser.schedule = mapSchedule;
+    });
+  }
+
   void _showBottomSheet({String label, String fieldName, String value}) {
     var controller = new TextEditingController(text: value ?? '');
     Get.bottomSheet(
@@ -397,10 +443,6 @@ class _ProfileState extends State<Profile> {
                           setState(() {
                             stateInstance.signUser.displayName =
                                 controller.text;
-                          });
-                        } else if (label == 'Horario') {
-                          setState(() {
-                            stateInstance.signUser.schedule = controller.text;
                           });
                         } else if (label == 'Telefono') {
                           setState(() {

@@ -13,18 +13,29 @@ import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:get/route_manager.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    final screen_size_width = MediaQuery.of(context).size.width;
-    final screen_size_height = MediaQuery.of(context).size.height;
+  _HomeState createState() => _HomeState();
+}
 
-    var barbers = Rx<List<User>>(List<User>());
+class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
+  TabController _tabController;
+  int dateTime;
+  var barbers = Rx<List<User>>(List<User>());
+  var stylists = Rx<List<User>>(List<User>());
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    _tabController = new TabController(length: 2, vsync: this, initialIndex: 0);
+    super.initState();
+    DateTime now = DateTime.now();
+    var date = '${now.year}${now.month}${now.day}${now.hour}';
+    dateTime = int.parse(date);
     firebaseInstance.getBarbers().asStream().asBroadcastStream().listen((data) {
       barbers.value = data;
     });
 
-    var stylists = Rx<List<User>>(List<User>());
     firebaseInstance
         .getStylists()
         .asStream()
@@ -32,6 +43,12 @@ class Home extends StatelessWidget {
         .listen((data) {
       stylists.value = data;
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screen_size_width = MediaQuery.of(context).size.width;
+    final screen_size_height = MediaQuery.of(context).size.height;
 
     var userAppointments = Rx<List<Appointment>>(List<Appointment>());
     firebaseInstance
@@ -60,12 +77,26 @@ class Home extends StatelessWidget {
       specAppointments.value = data;
     });
 
+    print(specAppointments);
+
     return Scaffold(
-        appBar: AppBar(
-            backgroundColor: Color(0xff0435d1),
-            title: Row(children: <Widget>[
-              Expanded(child: Text('FAENA')),
-            ])),
+        appBar: PreferredSize(
+            preferredSize:
+                (stateInstance.signUser.role == Constants.ROLE_BARBER ||
+                        stateInstance.signUser.role == Constants.ROLE_STYLIST)
+                    ? Size.fromHeight(110.0)
+                    : Size.fromHeight(50),
+            child: AppBar(
+                backgroundColor: Color(0xff0435d1),
+                title: Row(children: <Widget>[
+                  Expanded(child: Text('FAENA')),
+                ]),
+                bottom: (stateInstance.signUser.role == Constants.ROLE_BARBER ||
+                        stateInstance.signUser.role == Constants.ROLE_STYLIST)
+                    ? _tabbar(_tabController)
+                    : PreferredSize(
+                        child: Container(),
+                        preferredSize: Size.fromHeight(0)))),
         drawer: Drawer(
           child: ListView(
             padding: EdgeInsets.zero,
@@ -102,243 +133,340 @@ class Home extends StatelessWidget {
           ),
         ),
         body: SafeArea(
-            child: SingleChildScrollView(
-                child: Column(children: <Widget>[
-          SizedBox(
-            height: 10,
-          ),
-          Visibility(
-            visible: stateInstance.signUser.role == Constants.ROLE_CONSUMER,
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 8.0),
-                child: RichText(
-                  text: TextSpan(
-                      children: [
-                        TextSpan(
-                            text: 'Hola, ',
-                            style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xff0435d1))),
-                        TextSpan(text: 'Que te harás\nhoy?')
-                      ],
-                      style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black)),
-                ),
-              ),
-            ),
-          ),
-          Visibility(
-            visible: stateInstance.signUser.role == Constants.ROLE_CONSUMER,
-            child: SizedBox(
-              height: 50,
-            ),
-          ),
-          Visibility(
-            visible: stateInstance.signUser.role == Constants.ROLE_CONSUMER,
-            child: Carrousel(categoryList: [
-              Category(
-                  description:
-                      'Corte base, Corte formal, Corte y barba, Limpieza de barba.',
-                  name: 'Peluquería',
-                  photoURL: 'https://img1.wsimg.com/isteam/stock/15229/:/'),
-              Category(
-                  description: 'Uñas, Estilista, Maquillaje, Peluquería.',
-                  name: 'Estética',
-                  photoURL:
-                      'https://utensiliospara.com/wp-content/uploads/2018/08/estetica-portada_opt.png')
-            ]),
-          ),
-          Container(
-            padding: EdgeInsets.all(20),
-            alignment: Alignment.topLeft,
-            child: SingleChildScrollView(
-              child: Column(
-                children: <Widget>[
-                  SizedBox(height: 6),
-                  Visibility(
-                    visible:
-                        stateInstance.signUser.role == Constants.ROLE_CONSUMER,
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Expanded(
-                              child: Text("Estilistas Destacados",
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600))),
-                          FlatButton(
-                              onPressed: () {},
-                              child: Text("Ver todos",
-                                  style: TextStyle(color: Colors.black54)))
-                        ]),
-                  ),
-                  Visibility(
+            child: (stateInstance.signUser.role == Constants.ROLE_BARBER ||
+                    stateInstance.signUser.role == Constants.ROLE_STYLIST)
+                ? TabBarView(children: [
+                    Container(
+                        height: 230,
+                        width: screen_size_width,
+                        child: Obx(() => ListView(
+                              scrollDirection: Axis.vertical,
+                              children: specAppointments.value
+                                  .map((e) => (e.dateOrder > dateTime)
+                                      ? Container()
+                                      : ListTile(
+                                          title: Text(e.details),
+                                          subtitle: Text(e.date.toString() +
+                                              ' (' +
+                                              (e.specialist) +
+                                              ')'),
+                                        ))
+                                  .toList(growable: true),
+                            ))),
+                    Container(
+                        height: 230,
+                        width: screen_size_width,
+                        child: Obx(() => ListView(
+                              scrollDirection: Axis.vertical,
+                              children: specAppointments.value
+                                  .map((e) => (dateTime > e.dateOrder)
+                                      ? Container()
+                                      : ListTile(
+                                          title: Text(e.details),
+                                          subtitle: Text(e.date.toString() +
+                                              ' (' +
+                                              (e.specialist) +
+                                              ')'),
+                                        ))
+                                  .toList(growable: true),
+                            )))
+                  ], controller: _tabController)
+                : SingleChildScrollView(
+                    child: Column(children: <Widget>[
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Visibility(
                       visible: stateInstance.signUser.role ==
                           Constants.ROLE_CONSUMER,
-                      child: SizedBox(height: 6)),
-                  Container(
-                      height: 230,
-                      width: screen_size_width,
-                      child: Obx(
-                        () => ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: stylists.value
-                              .map((e) => SpecialistColumn(
-                                  specImg: e.photoURL,
-                                  specNumber: e.phone,
-                                  specName: e.displayName))
-                              .toList(growable: true),
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: RichText(
+                            text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                      text: 'Hola, ',
+                                      style: TextStyle(
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xff0435d1))),
+                                  TextSpan(text: 'Que te harás\nhoy?')
+                                ],
+                                style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black)),
+                          ),
                         ),
-                      )),
-                  Visibility(
-                      visible: stateInstance.signUser.role ==
-                          Constants.ROLE_CONSUMER,
-                      child: SizedBox(height: 6)),
-                  Visibility(
-                    visible:
-                        stateInstance.signUser.role == Constants.ROLE_CONSUMER,
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Expanded(
-                              child: Text("Barberos Destacados",
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600))),
-                          FlatButton(
-                              onPressed: () {},
-                              child: Text("Ver todos",
-                                  style: TextStyle(color: Colors.black54)))
-                        ]),
-                  ),
-                  Visibility(
-                      visible: stateInstance.signUser.role ==
-                          Constants.ROLE_CONSUMER,
-                      child: SizedBox(height: 6)),
-                  Visibility(
-                    visible:
-                        stateInstance.signUser.role != Constants.ROLE_STYLIST,
-                    child: Container(
-                        height: 230,
-                        width: screen_size_width,
-                        child: Obx(
-                          () => ListView(
-                            scrollDirection: Axis.horizontal,
-                            children: barbers.value
-                                .map((e) => SpecialistColumn(
-                                    specImg: e.photoURL,
-                                    specNumber: e.phone,
-                                    specName: e.displayName))
-                                .toList(growable: true),
-                          ),
+                      ),
+                    ),
+                    Visibility(
+                        visible: stateInstance.signUser.role ==
+                            Constants.ROLE_CONSUMER,
+                        child: SizedBox(
+                          height: 50,
                         )),
-                  ),
-                  Text("Citas",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                  Visibility(
-                    visible:
-                        stateInstance.signUser.role == Constants.ROLE_CONSUMER,
-                    child: Container(
-                        height: 230,
-                        width: screen_size_width,
-                        child: Obx(
-                          () => ListView(
-                            scrollDirection: Axis.vertical,
-                            children: userAppointments.value
-                                .map((e) => ListTile(
-                                      title: Text(e.details),
-                                      subtitle: Text(e.date.toString() +
-                                          ' (' +
-                                          (e.specialist) +
-                                          ')'),
-                                    ))
-                                .toList(growable: true),
-                          ),
-                        )),
-                  ),
-                  Visibility(
-                    visible: stateInstance.signUser.role ==
-                            Constants.ROLE_BEAUTY_SALON ||
-                        stateInstance.signUser.role ==
-                            Constants.ROLE_BARBERSHOP,
-                    child: Container(
-                        height: 230,
-                        width: screen_size_width,
-                        child: Obx(
-                          () => ListView(
-                            scrollDirection: Axis.vertical,
-                            children: businessAppointments.value
-                                .map((app) => ListTile(
-                                      leading: app.locationType ==
-                                              Constants.LOCATION_TYPE_HOME
-                                          ? Icon(Icons.home)
-                                          : Icon(Icons.apartment),
-                                      title: Text(app.details),
-                                      subtitle: Text(app.date.toString() +
-                                          ' (' +
-                                          (app.specialist +
-                                              ')\n' +
-                                              (app.locationType ==
-                                                      Constants
-                                                          .LOCATION_TYPE_HOME
-                                                  ? 'Lugar: ' + app.location
-                                                  : ''))+'\nServicio: ' + app.service),
-                                      //trailing: Text(app.service),
-                                    ))
-                                .toList(growable: true),
-                          ),
-                        )
-                        ),
-                  ),
-                  Visibility(
-                    visible: stateInstance.signUser.role ==
-                            Constants.ROLE_BARBER ||
-                        stateInstance.signUser.role == Constants.ROLE_STYLIST,
-                    child: Container(
-                        height: 230,
-                        width: screen_size_width,
-                        child: Obx(
-                          () => ListView(
-                            scrollDirection: Axis.vertical,
-                            children: specAppointments.value
-                                .map((e) => ListTile(
-                                    leading: e.locationType ==
-                                              Constants.LOCATION_TYPE_HOME
-                                          ? Icon(Icons.home)
-                                          : Icon(Icons.apartment),
-                                      title: Text(e.details),
-                                      subtitle: Text(e.date.toString()+
-                                      ' (' +
-                                          (  
-                                              ')\n' +
-                                              (e.locationType ==
-                                                      Constants
-                                                          .LOCATION_TYPE_HOME
-                                                  ? 'Lugar: ' + e.location
-                                                  : ''))+'\nServicio: ' + e.service
+                    Visibility(
+                        visible: stateInstance.signUser.role ==
+                            Constants.ROLE_CONSUMER,
+                        child: Carrousel(categoryList: [
+                          Category(
+                              description:
+                                  'Corte base, Corte formal, Corte y barba, Limpieza de barba.',
+                              name: 'Peluquería',
+                              photoURL:
+                                  'https://img1.wsimg.com/isteam/stock/15229/:/'),
+                          Category(
+                              description:
+                                  'Uñas, Estilista, Maquillaje, Peluquería.',
+                              name: 'Estética',
+                              photoURL:
+                                  'https://utensiliospara.com/wp-content/uploads/2018/08/estetica-portada_opt.png')
+                        ])),
+                    Container(
+                      padding: EdgeInsets.all(20),
+                      alignment: Alignment.topLeft,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: <Widget>[
+                            SizedBox(height: 6),
+                            Visibility(
+                              visible: stateInstance.signUser.role ==
+                                  Constants.ROLE_CONSUMER,
+                              child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    Expanded(
+                                        child: Text("Estilistas Destacados",
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600))),
+                                    FlatButton(
+                                        onPressed: () {},
+                                        child: Text("Ver todos",
+                                            style: TextStyle(
+                                                color: Colors.black54)))
+                                  ]),
+                            ),
+                            Visibility(
+                                visible: stateInstance.signUser.role ==
+                                    Constants.ROLE_CONSUMER,
+                                child: SizedBox(height: 6)),
+                            Visibility(
+                                visible: stateInstance.signUser.role ==
+                                    Constants.ROLE_CONSUMER,
+                                child: Container(
+                                    height: 230,
+                                    width: screen_size_width,
+                                    child: Obx(
+                                      () => ListView(
+                                        scrollDirection: Axis.horizontal,
+                                        children: stylists.value
+                                            .map((e) => SpecialistColumn(
+                                                employee: e,
+                                                refresh: setStylist))
+                                            .toList(growable: true),
                                       ),
-                                    ))
-                                .toList(growable: true),
-                          ),
-                        )
+                                    ))),
+                            Visibility(
+                                visible: stateInstance.signUser.role ==
+                                    Constants.ROLE_CONSUMER,
+                                child: SizedBox(height: 6)),
+                            Visibility(
+                              visible: stateInstance.signUser.role ==
+                                  Constants.ROLE_CONSUMER,
+                              child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    Expanded(
+                                        child: Text("Barberos Destacados",
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600))),
+                                    FlatButton(
+                                        onPressed: () {},
+                                        child: Text("Ver todos",
+                                            style: TextStyle(
+                                                color: Colors.black54)))
+                                  ]),
+                            ),
+                            Visibility(
+                                visible: stateInstance.signUser.role ==
+                                    Constants.ROLE_CONSUMER,
+                                child: SizedBox(height: 6)),
+                            Visibility(
+                              visible: stateInstance.signUser.role ==
+                                  Constants.ROLE_CONSUMER,
+                              child: Container(
+                                  height: 230,
+                                  width: screen_size_width,
+                                  child: Obx(
+                                    () => ListView(
+                                      scrollDirection: Axis.horizontal,
+                                      children: barbers.value
+                                          .map((e) => SpecialistColumn(
+                                              employee: e, refresh: setBarbers))
+                                          .toList(growable: true),
+                                    ),
+                                  )),
+                            ),
+                            Visibility(
+                                visible: stateInstance.signUser.role ==
+                                        Constants.ROLE_CONSUMER ||
+                                    stateInstance.signUser.role ==
+                                        Constants.ROLE_BARBERSHOP ||
+                                    stateInstance.signUser.role ==
+                                        Constants.ROLE_BEAUTY_SALON,
+                                child: Text("Citas",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600))),
+                            Visibility(
+                              visible: stateInstance.signUser.role ==
+                                  Constants.ROLE_CONSUMER,
+                              child: Container(
+                                  height: 230,
+                                  width: screen_size_width,
+                                  child: Obx(
+                                    () => ListView(
+                                      scrollDirection: Axis.vertical,
+                                      children: userAppointments.value
+                                          .map((e) => ListTile(
+                                                title: Text(e.details),
+                                                subtitle: Text(
+                                                    e.date.toString() +
+                                                        ' (' +
+                                                        (e.specialist) +
+                                                        ')'),
+                                              ))
+                                          .toList(growable: true),
+                                    ),
+                                  )),
+                            ),
+                            Visibility(
+                                visible: stateInstance.signUser.role ==
+                                        Constants.ROLE_BEAUTY_SALON ||
+                                    stateInstance.signUser.role ==
+                                        Constants.ROLE_BARBERSHOP,
+                                child: Container(
+                                    height: 230,
+                                    width: screen_size_width,
+                                    child: Obx(
+                                      () => ListView(
+                                        scrollDirection: Axis.vertical,
+                                        children: businessAppointments.value
+                                            .map((app) => ListTile(
+                                                  leading: app.locationType ==
+                                                          Constants
+                                                              .LOCATION_TYPE_HOME
+                                                      ? Icon(Icons.home)
+                                                      : Icon(Icons.apartment),
+                                                  title: Text(app.details),
+                                                  subtitle: Text(app.date
+                                                          .toString() +
+                                                      ' (' +
+                                                      (app.specialist +
+                                                          ')\n' +
+                                                          (app.locationType ==
+                                                                  Constants
+                                                                      .LOCATION_TYPE_HOME
+                                                              ? 'Lugar: ' +
+                                                                  app.location
+                                                              : '')) +
+                                                      '\nServicio: ' +
+                                                      app.service),
+                                                  //trailing: Text(app.service),
+                                                ))
+                                            .toList(growable: true),
+                                      ),
+                                    ))),
+                            Visibility(
+                              visible: stateInstance.signUser.role ==
+                                      Constants.ROLE_BARBER ||
+                                  stateInstance.signUser.role ==
+                                      Constants.ROLE_STYLIST,
+                              child: Container(
+                                  height: 230,
+                                  width: screen_size_width,
+                                  child: Obx(
+                                    () => ListView(
+                                      scrollDirection: Axis.vertical,
+                                      children: specAppointments.value
+                                          .map((e) => ListTile(
+                                                leading: e.locationType ==
+                                                        Constants
+                                                            .LOCATION_TYPE_HOME
+                                                    ? Icon(Icons.home)
+                                                    : Icon(Icons.apartment),
+                                                title: Text(e.details),
+                                                subtitle: Text(e.date
+                                                        .toString() +
+                                                    ' (' +
+                                                    (')\n' +
+                                                        (e.locationType ==
+                                                                Constants
+                                                                    .LOCATION_TYPE_HOME
+                                                            ? 'Lugar: ' +
+                                                                e.location
+                                                            : '')) +
+                                                    '\nServicio: ' +
+                                                    e.service),
+                                              ))
+                                          .toList(growable: true),
+                                    ),
+                                  )),
+                            ),
+                          ],
                         ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ]))));
+                      ),
+                    ),
+                  ]))));
+  }
+
+  Widget _tabbar(controller) {
+    return PreferredSize(
+        preferredSize: Size.fromHeight(20.0),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 30.0),
+          child: TabBar(
+              unselectedLabelColor: Colors.white,
+              labelColor: Colors.grey[200],
+              tabs: [
+                Tab(text: "Citas Historicas"),
+                Tab(text: "Citas Pendientes"),
+              ],
+              controller: controller,
+              labelPadding: EdgeInsets.only(bottom: 0.0),
+              indicatorColor: Colors.grey[200],
+              indicatorSize: TabBarIndicatorSize.label),
+        ));
+  }
+
+  setStylist() {
+    firebaseInstance
+        .getStylists()
+        .asStream()
+        .asBroadcastStream()
+        .listen((data) {
+      setState(() {
+        stylists.value = data;
+      });
+    });
+  }
+
+  setBarbers() {
+    firebaseInstance.getBarbers().asStream().asBroadcastStream().listen((data) {
+      setState(() {
+        barbers.value = data;
+      });
+    });
   }
 }

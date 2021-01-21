@@ -6,9 +6,9 @@ class User {
   String photoURL;
   String role;
   String uid;
-  int rating;
+  double rating;
   String phone;
-  String schedule;
+  Map<String, dynamic> schedule;
   String description;
   String collaborators;
   String images;
@@ -26,16 +26,15 @@ class User {
       this.description,
       this.collaborators,
       this.images = '',
-        this.earnings = 0.0}) {
-    this.rating ??= 0;
+      this.earnings = 0.0}) {
+    this.rating ??= 0.0;
     this.displayName ??= '';
     this.email ??= '';
-    this.photoURL ??=
-        Constants.PLACEHOLDER_IMAGE_URL;
+    this.photoURL ??= Constants.PLACEHOLDER_IMAGE_URL;
     this.role ??= Constants.ROLE_CONSUMER;
     this.uid ??= '';
     this.phone ??= 'sin numero';
-    this.schedule = 'sin horario';
+    this.schedule = {};
     this.description ??= 'sin descripcion';
     this.collaborators ??= '';
   }
@@ -46,13 +45,19 @@ class User {
         photoURL = json['photoURL'],
         role = json['role'],
         uid = json['uid'],
-        rating = json['rating'],
+        rating = (json['rating'] is int)
+            ? json['rating'].toDouble()
+            : json['rating'],
         phone = json['phone'],
         schedule = json['schedule'],
         description = json['description'],
         collaborators = json['collaborators'],
         images = json['images'] ?? '',
-        earnings = json['earnings'] == null ? 0.0 : json['earnings'] is int ? (json['earnings'] as int).toDouble() : json['earnings'];
+        earnings = json['earnings'] == null
+            ? 0.0
+            : json['earnings'] is int
+                ? (json['earnings'] as int).toDouble()
+                : json['earnings'];
 
   Map<String, dynamic> toJson() => {
         'displayName': displayName,
