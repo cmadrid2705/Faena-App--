@@ -479,6 +479,17 @@ class _ServiceDetailState extends State<ServiceDetail> {
                                   .firstWhere(
                                       (spec) => spec.email == selectedEmail)
                                   .displayName;
+                              appointment.clear();
+                              if (bussinessApt.length > 0) {
+                                for (var item in bussinessApt) {
+                                  if (item.specialistEmail
+                                      .toString()
+                                      .contains(selectedEmail)) {
+                                    appointment.add(item.dateOrder);
+                                  }
+                                }
+                              }
+                              print(appointment);
                             }))),
                     DropdownButtonHideUnderline(
                         child: Obx(() => DropdownButton(

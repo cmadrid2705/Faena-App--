@@ -32,6 +32,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     DateTime now = DateTime.now();
     var date = '${now.year}${now.month}${now.day}${now.hour}';
     dateTime = int.parse(date);
+    print(dateTime);
     firebaseInstance.getBarbers().asStream().asBroadcastStream().listen((data) {
       barbers.value = data;
     });
@@ -330,27 +331,24 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                         fontSize: 18,
                                         fontWeight: FontWeight.w600))),
                             Visibility(
-                              visible: stateInstance.signUser.role ==
-                                  Constants.ROLE_CONSUMER,
-                              child: Container(
-                                  height: 230,
-                                  width: screen_size_width,
-                                  child: Obx(
-                                    () => ListView(
-                                      scrollDirection: Axis.vertical,
-                                      children: userAppointments.value
-                                          .map((e) => ListTile(
-                                                title: Text(e.details),
-                                                subtitle: Text(
-                                                    e.date.toString() +
-                                                        ' (' +
-                                                        (e.specialist) +
-                                                        ')'),
-                                              ))
-                                          .toList(growable: true),
-                                    ),
-                                  )),
-                            ),
+                                visible: stateInstance.signUser.role ==
+                                    Constants.ROLE_CONSUMER,
+                                child: Container(
+                                    height: 230,
+                                    width: screen_size_width,
+                                    child: Obx(() => ListView(
+                                          scrollDirection: Axis.vertical,
+                                          children: userAppointments.value
+                                              .map((e) => ListTile(
+                                                    title: Text(e.details),
+                                                    subtitle: Text(
+                                                        e.date.toString() +
+                                                            ' (' +
+                                                            (e.specialist) +
+                                                            ')'),
+                                                  ))
+                                              .toList(growable: true),
+                                        )))),
                             Visibility(
                                 visible: stateInstance.signUser.role ==
                                         Constants.ROLE_BEAUTY_SALON ||
