@@ -78,7 +78,7 @@ class _ServicesState extends State<Services> {
                       child: Row(children: <Widget>[
                       Expanded(
                           child: Text(
-                              'Aun no tenemos proveedores en esta categoría.',
+                              'Aún no tenemos proveedores en esta categoría.',
                               style: TextStyle(
                                   fontSize: 22, fontWeight: FontWeight.bold)))
                     ])))
