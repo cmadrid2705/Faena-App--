@@ -1,4 +1,4 @@
-# faena
+# FAENA APP
 
 A new Flutter project.
 
