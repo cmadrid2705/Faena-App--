@@ -239,7 +239,7 @@ class _ProfileState extends State<Profile> {
                     alignment: Alignment.centerLeft,
                     transform: Matrix4.translationValues(0, -20, 0),
                     child:
-                        Text('Calificacion: ${stateInstance.signUser.rating}')),
+                        Text('Calificación: ${stateInstance.signUser.rating}')),
               ),
               Container(
                   padding: EdgeInsets.all(8),
@@ -299,7 +299,7 @@ class _ProfileState extends State<Profile> {
                         _showBottomSheet(
                             label: 'Agregar colaborador',
                             fieldName: 'collaborators',
-                            value: 'ingresar correo');
+                            value: 'Ingresar correo');
                       },
                     )
                   ],
@@ -477,7 +477,7 @@ class _ProfileState extends State<Profile> {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Text(
-                'Descripcion del Servicio Servicio',
+                'Descripción del Servicio Servicio',
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18.0,
