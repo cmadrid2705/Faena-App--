@@ -145,7 +145,7 @@ class Register extends StatelessWidget {
         keyboardType: TextInputType.text,
         decoration: InputDecoration(
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(7.0)),
-          labelText: "* Nombres y Apellidos",
+          labelText: "Nombre y Apellido / Nombre del establecimiento",
           labelStyle: TextStyle(color: Colors.grey[700]),
           focusedBorder: OutlineInputBorder(
             borderSide: const BorderSide(color: Colors.black, width: 1.0),

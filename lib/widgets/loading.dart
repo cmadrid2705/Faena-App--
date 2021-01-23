@@ -10,7 +10,7 @@ class Loading extends StatelessWidget {
       height: MediaQuery.of(context).size.height,
       child: Center(
           child: SpinKitFadingCube(
-            color: Colors.green,
+            color: Colors.blue,
             size: 50,
           )),
     );
